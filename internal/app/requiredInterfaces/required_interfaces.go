@@ -5,6 +5,8 @@ import (
 	"context"
 )
 
+//go:generate mockgen -source=required_interfaces.go -destination=./mocks/mocks.go -package=mocks
+
 // KeyKeeper MUST BE a secure key-storage witch follows PCI DSS 4.0.
 // This interface can be used to store encryption keys.
 type KeyKeeper interface {
