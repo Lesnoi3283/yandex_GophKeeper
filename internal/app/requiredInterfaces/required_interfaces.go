@@ -40,7 +40,7 @@ type UserManager interface {
 // JWTHelper creates new JWT and validates old ones.
 type JWTHelper interface {
 	BuildNewJWTString(userID int) (string, error)
-	GetUserID(token string) (userID string, err error)
+	GetUserID(token string) (userID int, err error)
 }
 
 //Todo: хранилища для остальных типов данных (текст, бинарники, логин&пароль)
