@@ -210,7 +210,7 @@ func (m *MockUserManager) EXPECT() *MockUserManagerMockRecorder {
 // Auth mocks base method.
 func (m *MockUserManager) Auth(ctx context.Context, user entities.User) (int, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Auth", ctx, user)
+	ret := m.ctrl.Call(m, "LogIn", ctx, user)
 	ret0, _ := ret[0].(int)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -219,7 +219,7 @@ func (m *MockUserManager) Auth(ctx context.Context, user entities.User) (int, er
 // Auth indicates an expected call of Auth.
 func (mr *MockUserManagerMockRecorder) Auth(ctx, user interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Auth", reflect.TypeOf((*MockUserManager)(nil).Auth), ctx, user)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LogIn", reflect.TypeOf((*MockUserManager)(nil).Auth), ctx, user)
 }
 
 // Create mocks base method.

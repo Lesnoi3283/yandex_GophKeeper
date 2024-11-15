@@ -10,7 +10,7 @@ import (
 	"net/http"
 )
 
-func (h *handlerHTTP) Auth(w http.ResponseWriter, r *http.Request) {
+func (h *handlerHTTP) LogIn(w http.ResponseWriter, r *http.Request) {
 	//read data
 	bytes, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -45,7 +45,7 @@ func (h *handlerHTTP) Auth(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//Auth
+	//LogIn
 	user.ID, err = h.UserManager.Auth(r.Context(), user)
 	if errors.Is(err, storageerrors.NewErrNotExists()) {
 		h.Logger.Debugf("user not exists, err: %v", err)

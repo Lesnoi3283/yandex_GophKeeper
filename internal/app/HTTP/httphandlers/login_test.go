@@ -16,9 +16,9 @@ import (
 	"testing"
 )
 
-func Test_handlerHTTP_Auth(t *testing.T) {
+func Test_handlerHTTP_LogIn(t *testing.T) {
 	//set data
-	url := "/api/auth"
+	url := "/api/login"
 
 	//set logger
 	logger := zaptest.NewLogger(t)
@@ -135,7 +135,7 @@ func Test_handlerHTTP_Auth(t *testing.T) {
 				UserManager: tt.fields.UserManager,
 				JWTHelper:   tt.fields.JWTHelper,
 			}
-			h.Auth(tt.args.w, tt.args.req)
+			h.LogIn(tt.args.w, tt.args.req)
 			assert.Equal(t, tt.expectedAnswer, tt.expectedAnswer)
 		})
 	}
