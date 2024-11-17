@@ -9,9 +9,14 @@ import (
 	"io"
 )
 
+// Encryptor has 2 functions - encrypt and decrypt. It doesn`t contain any fields.
+// It`s just a functor.
+// It was created to make possible to mock encryption functions.
+type EncryptorAESGCM struct{}
+
 // EncryptAESGCM encrypts data using AES-GSM.
 // key must have 32-byte len for AES-256.
-func EncryptAESGCM(plaintext []byte, key []byte) ([]byte, error) {
+func (e *EncryptorAESGCM) EncryptAESGCM(plaintext []byte, key []byte) ([]byte, error) {
 	if len(key) != 32 {
 		return nil, errors.New("key length must be 32 bytes for AES-256")
 	}
@@ -39,7 +44,7 @@ func EncryptAESGCM(plaintext []byte, key []byte) ([]byte, error) {
 }
 
 // DecryptAESGCM decrypts data.
-func DecryptAESGCM(ciphertext []byte, key []byte) ([]byte, error) {
+func (e *EncryptorAESGCM) DecryptAESGCM(ciphertext []byte, key []byte) ([]byte, error) {
 	block, err := aes.NewCipher(key)
 	if err != nil {
 		return nil, fmt.Errorf("aes.NewCipher: %w", err)

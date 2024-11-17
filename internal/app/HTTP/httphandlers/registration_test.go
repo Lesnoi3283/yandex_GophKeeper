@@ -24,12 +24,9 @@ func Test_handlerHTTP_RegisterUser(t *testing.T) {
 	logger := zaptest.NewLogger(t)
 	sugar := logger.Sugar()
 
-	//set gomock controller
-	c := gomock.NewController(t)
-
 	type fields struct {
-		UserManager requiredInterfaces.UserManager
-		JWTHelper   requiredInterfaces.JWTHelper
+		UserManager func(c *gomock.Controller) requiredInterfaces.UserManager
+		JWTHelper   func(c *gomock.Controller) requiredInterfaces.JWTHelper
 	}
 	type args struct {
 		w   *httptest.ResponseRecorder
@@ -45,7 +42,7 @@ func Test_handlerHTTP_RegisterUser(t *testing.T) {
 		{
 			name: "Ok",
 			fields: fields{
-				UserManager: func() requiredInterfaces.UserManager {
+				UserManager: func(c *gomock.Controller) requiredInterfaces.UserManager {
 					um := mocks.NewMockUserManager(c)
 					um.EXPECT().Create(gomock.Any(), gomock.AssignableToTypeOf(entities.User{})).DoAndReturn(func(_ context.Context, u entities.User) (int, error) {
 						assert.Equal(t, "qwerty@example.ru", u.Login)
@@ -53,12 +50,12 @@ func Test_handlerHTTP_RegisterUser(t *testing.T) {
 						return 1, nil
 					})
 					return um
-				}(),
-				JWTHelper: func() requiredInterfaces.JWTHelper {
+				},
+				JWTHelper: func(c *gomock.Controller) requiredInterfaces.JWTHelper {
 					jh := mocks.NewMockJWTHelper(c)
 					jh.EXPECT().BuildNewJWTString(1).Return("very.secret.jwt", nil)
 					return jh
-				}(),
+				},
 			},
 			args: args{
 				w:   httptest.NewRecorder(),
@@ -86,13 +83,22 @@ func Test_handlerHTTP_RegisterUser(t *testing.T) {
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
+			name: "No login",
+			args: args{
+				w:   httptest.NewRecorder(),
+				req: httptest.NewRequest(http.MethodPost, url, bytes.NewBufferString(`{"login":"","password":"12345"}`)),
+			},
+			expectedAnswer: nil,
+			expectedStatus: http.StatusBadRequest,
+		},
+		{
 			name: "User already exists",
 			fields: fields{
-				UserManager: func() requiredInterfaces.UserManager {
+				UserManager: func(c *gomock.Controller) requiredInterfaces.UserManager {
 					um := mocks.NewMockUserManager(c)
 					um.EXPECT().Create(gomock.Any(), gomock.Any()).Return(0, storageerrors.NewErrAlreadyExists())
 					return um
-				}(),
+				},
 				JWTHelper: nil,
 			},
 			args: args{
@@ -105,11 +111,11 @@ func Test_handlerHTTP_RegisterUser(t *testing.T) {
 		{
 			name: "database error",
 			fields: fields{
-				UserManager: func() requiredInterfaces.UserManager {
+				UserManager: func(c *gomock.Controller) requiredInterfaces.UserManager {
 					um := mocks.NewMockUserManager(c)
 					um.EXPECT().Create(gomock.Any(), gomock.Any()).Return(0, fmt.Errorf("some test error"))
 					return um
-				}(),
+				},
 				JWTHelper: nil,
 			},
 			args: args{
@@ -122,16 +128,16 @@ func Test_handlerHTTP_RegisterUser(t *testing.T) {
 		{
 			name: "jwt helper error",
 			fields: fields{
-				UserManager: func() requiredInterfaces.UserManager {
+				UserManager: func(c *gomock.Controller) requiredInterfaces.UserManager {
 					um := mocks.NewMockUserManager(c)
 					um.EXPECT().Create(gomock.Any(), gomock.Any()).Return(1, nil)
 					return um
-				}(),
-				JWTHelper: func() requiredInterfaces.JWTHelper {
+				},
+				JWTHelper: func(c *gomock.Controller) requiredInterfaces.JWTHelper {
 					jh := mocks.NewMockJWTHelper(c)
 					jh.EXPECT().BuildNewJWTString(gomock.Any()).Return("", fmt.Errorf("some test error"))
 					return jh
-				}(),
+				},
 			},
 			args: args{
 				w:   httptest.NewRecorder(),
@@ -144,10 +150,18 @@ func Test_handlerHTTP_RegisterUser(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := &handlerHTTP{
-				Logger:      sugar,
-				UserManager: tt.fields.UserManager,
-				JWTHelper:   tt.fields.JWTHelper,
+				Logger: sugar,
 			}
+
+			//set gomock controller
+			c := gomock.NewController(t)
+			if tt.fields.UserManager != nil {
+				h.UserManager = tt.fields.UserManager(c)
+			}
+			if tt.fields.JWTHelper != nil {
+				h.JWTHelper = tt.fields.JWTHelper(c)
+			}
+
 			h.RegisterUser(tt.args.w, tt.args.req)
 			assert.Equal(t, tt.expectedStatus, tt.args.w.Code)
 			assert.Equal(t, tt.expectedAnswer, tt.args.w.Body.Bytes())

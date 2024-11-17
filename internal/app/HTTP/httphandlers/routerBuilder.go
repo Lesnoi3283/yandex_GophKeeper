@@ -12,6 +12,7 @@ type handlerHTTP struct {
 	UserManager requiredInterfaces.UserManager
 	JWTHelper   requiredInterfaces.JWTHelper
 	KeyKeeper   requiredInterfaces.KeyKeeper
+	Encryptor   requiredInterfaces.Encryptor
 }
 
 // todo: create a chi router builder

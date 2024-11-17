@@ -399,3 +399,56 @@ func (mr *MockJWTHelperMockRecorder) GetUserID(token interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserID", reflect.TypeOf((*MockJWTHelper)(nil).GetUserID), token)
 }
+
+// MockEncryptor is a mock of Encryptor interface.
+type MockEncryptor struct {
+	ctrl     *gomock.Controller
+	recorder *MockEncryptorMockRecorder
+}
+
+// MockEncryptorMockRecorder is the mock recorder for MockEncryptor.
+type MockEncryptorMockRecorder struct {
+	mock *MockEncryptor
+}
+
+// NewMockEncryptor creates a new mock instance.
+func NewMockEncryptor(ctrl *gomock.Controller) *MockEncryptor {
+	mock := &MockEncryptor{ctrl: ctrl}
+	mock.recorder = &MockEncryptorMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockEncryptor) EXPECT() *MockEncryptorMockRecorder {
+	return m.recorder
+}
+
+// DecryptAESGCM mocks base method.
+func (m *MockEncryptor) DecryptAESGCM(ciphertext, key []byte) ([]byte, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DecryptAESGCM", ciphertext, key)
+	ret0, _ := ret[0].([]byte)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DecryptAESGCM indicates an expected call of DecryptAESGCM.
+func (mr *MockEncryptorMockRecorder) DecryptAESGCM(ciphertext, key interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DecryptAESGCM", reflect.TypeOf((*MockEncryptor)(nil).DecryptAESGCM), ciphertext, key)
+}
+
+// EncryptAESGCM mocks base method.
+func (m *MockEncryptor) EncryptAESGCM(plaintext, key []byte) ([]byte, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "EncryptAESGCM", plaintext, key)
+	ret0, _ := ret[0].([]byte)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// EncryptAESGCM indicates an expected call of EncryptAESGCM.
+func (mr *MockEncryptorMockRecorder) EncryptAESGCM(plaintext, key interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EncryptAESGCM", reflect.TypeOf((*MockEncryptor)(nil).EncryptAESGCM), plaintext, key)
+}

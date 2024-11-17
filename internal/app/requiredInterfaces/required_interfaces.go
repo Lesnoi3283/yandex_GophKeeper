@@ -28,6 +28,7 @@ type Storage interface {
 	SaveBankCard(ctx context.Context, userID int, cardData []byte) (id int, err error)
 	GetBankCard(ctx context.Context, last4Digits int, ownerID int) (data []byte, err error)
 	SaveLoginAndPassword(ctx context.Context, ownerID int, data entities.LoginAndPassword) (id int, err error)
+	// GetLoginAndPassword have to return this fields: ID, OwnerID, Login, Password.
 	GetLoginAndPassword(ctx context.Context, ownerID int, login string) (data entities.LoginAndPassword, err error)
 	SaveBinaryData(ctx context.Context, ownerID int, dataName string, data []byte) (id int, err error)
 	GetBinaryData(ctx context.Context, ownerID int, dataName string) (data []byte, err error)
@@ -48,4 +49,8 @@ type JWTHelper interface {
 	GetUserID(token string) (userID int, err error)
 }
 
-//Todo: хранилища для остальных типов данных (текст, бинарники, логин&пароль)
+// Encryptor have to encrypt and decrypt data using AES GCM.
+type Encryptor interface {
+	EncryptAESGCM(plaintext []byte, key []byte) ([]byte, error)
+	DecryptAESGCM(ciphertext []byte, key []byte) ([]byte, error)
+}

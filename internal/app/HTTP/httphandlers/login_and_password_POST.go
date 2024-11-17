@@ -3,11 +3,11 @@ package httphandlers
 import (
 	"GophKeeper/internal/app/HTTP/middlewares"
 	"GophKeeper/internal/app/entities"
-	"GophKeeper/pkg/secure"
 	"crypto/rand"
 	"encoding/json"
 	"io"
 	"net/http"
+	"strconv"
 )
 
 func (h *handlerHTTP) LoginAndPasswordSave(w http.ResponseWriter, r *http.Request) {
@@ -32,27 +32,18 @@ func (h *handlerHTTP) LoginAndPasswordSave(w http.ResponseWriter, r *http.Reques
 	if err != nil {
 		h.Logger.Warnf("cannot unmarshal body: %s", err)
 		w.WriteHeader(http.StatusBadRequest)
+		return
 	}
 	if len(loginAndPassword.Login) == 0 {
 		h.Logger.Debug("login is empty")
 		w.WriteHeader(http.StatusBadRequest)
+		return
 	}
 	if len(loginAndPassword.Password) == 0 {
 		h.Logger.Debug("password is empty")
 		w.WriteHeader(http.StatusBadRequest)
+		return
 	}
-
-	//encrypt data
-	//var gobBuffer bytes.Buffer
-	//encoder := gob.NewEncoder(&gobBuffer)
-	//err = encoder.Encode(loginAndPassword)
-	//if err != nil {
-	//	h.Logger.Error("cannot encode body")
-	//	h.Logger.Debugf("cannot encode body, err: %v", err)
-	//	w.WriteHeader(http.StatusInternalServerError)
-	//	return
-	//}
-	//dataBytes := gobBuffer.Bytes()
 
 	//gen key
 	key := make([]byte, 32)
@@ -62,23 +53,35 @@ func (h *handlerHTTP) LoginAndPasswordSave(w http.ResponseWriter, r *http.Reques
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	encryptedData, err := secure.EncryptAESGCM([]byte(loginAndPassword.Password), key)
+
+	//encrypt
+	encryptedData, err := h.Encryptor.EncryptAESGCM([]byte(loginAndPassword.Password), key)
 	if err != nil {
 		h.Logger.Errorf("cannot encrypt data")
 		h.Logger.Debugf("cannot encrypt data, err: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 	loginAndPassword.Password = string(encryptedData)
 
 	//save data
-	_, err = h.Storage.SaveLoginAndPassword(r.Context(), userIDInt, loginAndPassword)
+	dataID, err := h.Storage.SaveLoginAndPassword(r.Context(), userIDInt, loginAndPassword)
 	if err != nil {
 		h.Logger.Errorf("cannot save login and password")
 		h.Logger.Debugf("cannot save login and password, err: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	//save key
+	err = h.KeyKeeper.SetLoginAndPasswordKey(strconv.Itoa(userIDInt), strconv.Itoa(dataID), string(key))
+	if err != nil {
+		h.Logger.Errorf("cannot save key")
+		h.Logger.Debugf("cannot save key, err: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 
 	w.WriteHeader(http.StatusCreated)
 	return
 }
-
-//TODO: tests required!

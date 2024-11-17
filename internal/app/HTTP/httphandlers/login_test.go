@@ -24,12 +24,9 @@ func Test_handlerHTTP_LogIn(t *testing.T) {
 	logger := zaptest.NewLogger(t)
 	sugar := logger.Sugar()
 
-	//set gomock controller
-	c := gomock.NewController(t)
-
 	type fields struct {
-		UserManager requiredInterfaces.UserManager
-		JWTHelper   requiredInterfaces.JWTHelper
+		UserManager func(c *gomock.Controller) requiredInterfaces.UserManager
+		JWTHelper   func(c *gomock.Controller) requiredInterfaces.JWTHelper
 	}
 	type args struct {
 		w   *httptest.ResponseRecorder
@@ -45,7 +42,7 @@ func Test_handlerHTTP_LogIn(t *testing.T) {
 		{
 			name: "ok",
 			fields: fields{
-				UserManager: func() requiredInterfaces.UserManager {
+				UserManager: func(c *gomock.Controller) requiredInterfaces.UserManager {
 					um := mocks.NewMockUserManager(c)
 					um.EXPECT().Auth(gomock.Any(), gomock.AssignableToTypeOf(entities.User{})).DoAndReturn(func(_ context.Context, u entities.User) (int, error) {
 						assert.Equal(t, "qwerty@example.ru", u.Login)
@@ -53,12 +50,12 @@ func Test_handlerHTTP_LogIn(t *testing.T) {
 						return 1, nil
 					})
 					return um
-				}(),
-				JWTHelper: func() requiredInterfaces.JWTHelper {
+				},
+				JWTHelper: func(c *gomock.Controller) requiredInterfaces.JWTHelper {
 					jh := mocks.NewMockJWTHelper(c)
 					jh.EXPECT().BuildNewJWTString(1).Return("some.test.jwt", nil)
 					return jh
-				}(),
+				},
 			},
 			args: args{
 				w:   httptest.NewRecorder(),
@@ -70,11 +67,11 @@ func Test_handlerHTTP_LogIn(t *testing.T) {
 		{
 			name: "user not exists",
 			fields: fields{
-				UserManager: func() requiredInterfaces.UserManager {
+				UserManager: func(c *gomock.Controller) requiredInterfaces.UserManager {
 					um := mocks.NewMockUserManager(c)
 					um.EXPECT().Auth(gomock.Any(), gomock.Any()).Return(0, storageerrors.NewErrNotExists())
 					return um
-				}(),
+				},
 				JWTHelper: nil,
 			},
 			args: args{
@@ -87,11 +84,11 @@ func Test_handlerHTTP_LogIn(t *testing.T) {
 		{
 			name: "some db error",
 			fields: fields{
-				UserManager: func() requiredInterfaces.UserManager {
+				UserManager: func(c *gomock.Controller) requiredInterfaces.UserManager {
 					um := mocks.NewMockUserManager(c)
 					um.EXPECT().Auth(gomock.Any(), gomock.Any()).Return(0, fmt.Errorf("some test db error"))
 					return um
-				}(),
+				},
 				JWTHelper: nil,
 			},
 			args: args{
@@ -131,10 +128,18 @@ func Test_handlerHTTP_LogIn(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := &handlerHTTP{
-				Logger:      sugar,
-				UserManager: tt.fields.UserManager,
-				JWTHelper:   tt.fields.JWTHelper,
+				Logger: sugar,
 			}
+
+			//set gomock controller
+			c := gomock.NewController(t)
+			if tt.fields.UserManager != nil {
+				h.UserManager = tt.fields.UserManager(c)
+			}
+			if tt.fields.JWTHelper != nil {
+				h.JWTHelper = tt.fields.JWTHelper(c)
+			}
+
 			h.LogIn(tt.args.w, tt.args.req)
 			assert.Equal(t, tt.expectedAnswer, tt.expectedAnswer)
 		})
