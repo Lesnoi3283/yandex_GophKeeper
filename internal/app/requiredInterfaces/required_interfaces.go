@@ -7,27 +7,32 @@ import (
 
 //go:generate mockgen -source=required_interfaces.go -destination=./mocks/mocks.go -package=mocks
 
-// KeyKeeper MUST BE a secure key-storage witch follows PCI DSS 4.0.
-// This interface can be used to store encryption keys.
+// KeyKeeper MUST be a secure key storage interface that follows PCI DSS 4.0.
+// This interface is specifically used for storing encryption keys.
 type KeyKeeper interface {
-	SetKey(dataType string, userID string, dataID string, key string) error
-	GetKey(dataType string, userID string, dataID string) (string, error)
-	RemoveKey(dataType string, userID string, dataID string) error
+	SetBankCardKey(userID string, dataID string, key string) error
+	GetBankCardKey(userID string, dataID string) (string, error)
+	SetTextDataKey(userID string, dataID string, key string) error
+	GetTextDataKey(userID string, dataID string) (string, error)
+	SetLoginAndPasswordKey(userID string, dataID string, key string) error
+	GetLoginAndPasswordKey(userID string, dataID string) (string, error)
+	SetBinaryDataKey(userID string, dataID string, key string) error
+	GetBinaryDataKey(userID string, dataID string) (string, error)
 }
 
-// Encryptor encrypts and decrypts provided data.
-type Encryptor interface {
-	Encrypt(key string, data []byte) ([]byte, error)
-	Decrypt(key string, data []byte) ([]byte, error)
-}
-
-// BankCardStorage can save and return bank card data as a bytes slice.
+// Storage can save and return bank card data as a bytes slice.
 // It can, but not have to encrypt your data.
-// You have to encrypt it yourself. (That`s why Encryptor interface exists).
+// You have to encrypt it yourself.
 // NOTE: dont forget to check if userID matches with a user who tries to get a card.
-type BankCardStorage interface {
-	Save(ctx context.Context, userID int, cardData []byte) (id int, err error)
-	Get(ctx context.Context, cardID int) (data []byte, err error)
+type Storage interface {
+	SaveBankCard(ctx context.Context, userID int, cardData []byte) (id int, err error)
+	GetBankCard(ctx context.Context, last4Digits int, ownerID int) (data []byte, err error)
+	SaveLoginAndPassword(ctx context.Context, ownerID int, data entities.LoginAndPassword) (id int, err error)
+	GetLoginAndPassword(ctx context.Context, ownerID int, login string) (data entities.LoginAndPassword, err error)
+	SaveBinaryData(ctx context.Context, ownerID int, dataName string, data []byte) (id int, err error)
+	GetBinaryData(ctx context.Context, ownerID int, dataName string) (data []byte, err error)
+	SaveText(ctx context.Context, ownerID int, textName string, text []byte) (id int, err error)
+	GetText(ctx context.Context, ownerID int, textName string) (text []byte, err error)
 }
 
 // UserManager controls all manipulations with user.

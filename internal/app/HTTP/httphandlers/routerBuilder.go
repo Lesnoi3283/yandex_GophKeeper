@@ -8,8 +8,10 @@ import (
 
 type handlerHTTP struct {
 	Logger      *zap.SugaredLogger
+	Storage     requiredInterfaces.Storage
 	UserManager requiredInterfaces.UserManager
 	JWTHelper   requiredInterfaces.JWTHelper
+	KeyKeeper   requiredInterfaces.KeyKeeper
 }
 
 // todo: create a chi router builder
