@@ -1,0 +1,25 @@
+syntax = "proto3";
+package GRPC;
+option go_package = "github.com/Lesnoi3283/internal/app/proto";
+
+import "google/protobuf/empty.proto";
+
+//requests
+
+message SaveBinDataRequest{
+  string data_name = 1;
+  bytes chunk = 2;
+}
+
+message GetBinDataResponse{
+  bytes chunk = 2;
+}
+
+message GetBinDataRequest{
+  string data_name = 1;
+}
+
+service GophKeeperService{
+  rpc SaveBinData(stream SaveBinDataRequest) returns (google.protobuf.Empty);
+  rpc GetBinData(GetBinDataRequest) returns (stream GetBinDataResponse);
+}
