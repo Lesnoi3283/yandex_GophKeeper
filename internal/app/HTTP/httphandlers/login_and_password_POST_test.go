@@ -2,7 +2,6 @@ package httphandlers
 
 import (
 	"GophKeeper/internal/app/HTTP/middlewares"
-	"GophKeeper/internal/app/entities"
 	"GophKeeper/internal/app/requiredInterfaces"
 	"GophKeeper/internal/app/requiredInterfaces/mocks"
 	"bytes"
@@ -45,11 +44,7 @@ func Test_handlerHTTP_LoginAndPasswordSave(t *testing.T) {
 			fields: fields{
 				Storage: func(c *gomock.Controller) requiredInterfaces.Storage {
 					st := mocks.NewMockStorage(c)
-					st.EXPECT().SaveLoginAndPassword(gomock.Any(), 1, gomock.AssignableToTypeOf(entities.LoginAndPassword{})).DoAndReturn(
-						func(_ context.Context, ownerID int, lp entities.LoginAndPassword) (int, error) {
-							assert.Equal(t, "encryptedPassword", lp.Password)
-							return 100, nil
-						})
+					st.EXPECT().SaveLoginAndPassword(gomock.Any(), 1, "example", "encryptedPassword").Return(100, nil)
 					return st
 				},
 				KeyKeeper: func(c *gomock.Controller) requiredInterfaces.KeyKeeper {
@@ -160,7 +155,7 @@ func Test_handlerHTTP_LoginAndPasswordSave(t *testing.T) {
 			fields: fields{
 				Storage: func(c *gomock.Controller) requiredInterfaces.Storage {
 					st := mocks.NewMockStorage(c)
-					st.EXPECT().SaveLoginAndPassword(gomock.Any(), gomock.Any(), gomock.Any()).Return(0, fmt.Errorf("some test storage error"))
+					st.EXPECT().SaveLoginAndPassword(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(0, fmt.Errorf("some test storage error"))
 					return st
 				},
 				KeyKeeper: nil,
@@ -186,7 +181,7 @@ func Test_handlerHTTP_LoginAndPasswordSave(t *testing.T) {
 			fields: fields{
 				Storage: func(c *gomock.Controller) requiredInterfaces.Storage {
 					st := mocks.NewMockStorage(c)
-					st.EXPECT().SaveLoginAndPassword(gomock.Any(), gomock.Any(), gomock.Any()).Return(100, nil)
+					st.EXPECT().SaveLoginAndPassword(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(100, nil)
 					return st
 				},
 				KeyKeeper: func(c *gomock.Controller) requiredInterfaces.KeyKeeper {

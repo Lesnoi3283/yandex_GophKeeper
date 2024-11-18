@@ -7,7 +7,7 @@ import (
 	"strconv"
 )
 
-func (h *handlerHTTP) PasswordGet(w http.ResponseWriter, r *http.Request) {
+func (h *handlerHTTP) TextDataGet(w http.ResponseWriter, r *http.Request) {
 	//get userID from ctx
 	userID := r.Context().Value(middlewares.UserIDContextKey)
 	userIDInt, ok := userID.(int)
@@ -17,32 +17,31 @@ func (h *handlerHTTP) PasswordGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//parse data
+	//parse text name from request
 	login, err := io.ReadAll(r.Body)
 	if err != nil {
 		h.Logger.Errorf("cannot read body: %s", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	loginStr := string(login)
-
-	if len(loginStr) == 0 {
-		h.Logger.Debug("login is empty")
+	textNameStr := string(login)
+	if len(textNameStr) == 0 {
+		h.Logger.Debug("textNameStr is empty")
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	//get login and encryptedPassword
-	encryptedPassword, dataID, err := h.Storage.GetPasswordByLogin(r.Context(), userIDInt, loginStr)
+	//get encrypted text
+	encryptedText, dataID, err := h.Storage.GetText(r.Context(), userIDInt, textNameStr)
 	if err != nil {
-		h.Logger.Errorf("cannot get login and encryptedPassword")
-		h.Logger.Debugf("cannot get login and encryptedPassword, err: %v", err)
+		h.Logger.Errorf("cannot get encryptedText")
+		h.Logger.Debugf("cannot get encryptedText, err: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	//read encryption key
-	key, err := h.KeyKeeper.GetLoginAndPasswordKey(strconv.Itoa(userIDInt), strconv.Itoa(dataID))
+	key, err := h.KeyKeeper.GetTextDataKey(strconv.Itoa(userIDInt), strconv.Itoa(dataID))
 	if err != nil {
 		h.Logger.Errorf("cant get encryption key from key storage")
 		h.Logger.Debugf("cant get encryption key from key storage, err: %v", err)
@@ -51,15 +50,15 @@ func (h *handlerHTTP) PasswordGet(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//decrypt
-	passwordBytes, err := h.Encryptor.DecryptAESGCM([]byte(encryptedPassword), []byte(key))
+	decryptedText, err := h.Encryptor.DecryptAESGCM(encryptedText, []byte(key))
 	if err != nil {
-		h.Logger.Errorf("cannot decrypt password")
-		h.Logger.Debugf("cannot decrypt password, err: %v", err)
+		h.Logger.Errorf("cannot decrypt text")
+		h.Logger.Debugf("cannot decrypt text, err: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	//return encryptedPassword
 	w.WriteHeader(http.StatusOK)
-	w.Write(passwordBytes)
+	w.Write(decryptedText)
 }

@@ -26,14 +26,13 @@ type KeyKeeper interface {
 // NOTE: dont forget to check if userID matches with a user who tries to get a card.
 type Storage interface {
 	SaveBankCard(ctx context.Context, userID int, cardData []byte) (id int, err error)
-	GetBankCard(ctx context.Context, last4Digits int, ownerID int) (data []byte, err error)
-	SaveLoginAndPassword(ctx context.Context, ownerID int, data entities.LoginAndPassword) (id int, err error)
-	// GetLoginAndPassword have to return this fields: ID, OwnerID, Login, Password.
-	GetLoginAndPassword(ctx context.Context, ownerID int, login string) (data entities.LoginAndPassword, err error)
+	GetBankCard(ctx context.Context, last4Digits int, ownerID int) (data []byte, dataID int, err error)
+	SaveLoginAndPassword(ctx context.Context, ownerID int, login string, password string) (id int, err error)
+	GetPasswordByLogin(ctx context.Context, ownerID int, login string) (password string, dataID int, err error)
 	SaveBinaryData(ctx context.Context, ownerID int, dataName string, data []byte) (id int, err error)
-	GetBinaryData(ctx context.Context, ownerID int, dataName string) (data []byte, err error)
-	SaveText(ctx context.Context, ownerID int, textName string, text []byte) (id int, err error)
-	GetText(ctx context.Context, ownerID int, textName string) (text []byte, err error)
+	GetBinaryData(ctx context.Context, ownerID int, dataName string) (data []byte, dataID int, err error)
+	SaveText(ctx context.Context, ownerID int, textName string, text string) (id int, err error)
+	GetText(ctx context.Context, ownerID int, textName string) (text []byte, dataID int, err error)
 }
 
 // UserManager controls all manipulations with user.
