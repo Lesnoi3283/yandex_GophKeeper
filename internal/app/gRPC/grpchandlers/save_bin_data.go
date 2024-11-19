@@ -16,6 +16,8 @@ import (
 // (аналогично с ридером). Файл и ключ шифрования передаются в функцию фабрики и хранятся в полях райтера и ридера.
 // У райтера должны быть фукнции write и read соответственно, должны соответствовать интерфейсу io.Reader и io.Writer.
 
+//todo: возможно идея выше не очень и нужно придумать что-то еще. ОБЗАТЕЛЬНО ПОДУМАТЬ!!! Мб прям тут в грпс методе шифровать и записывать.
+
 // SaveBinData encrypts and saves a bin data into a file.
 func (s *GophKeeperServer) SaveBinData(stream proto.GophKeeperService_SaveBinDataServer) (*emptypb.Empty, error) {
 	//get userID
