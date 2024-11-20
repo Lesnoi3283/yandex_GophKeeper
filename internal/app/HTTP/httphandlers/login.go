@@ -6,6 +6,7 @@ import (
 	"GophKeeper/pkg/storages/storageerrors"
 	"encoding/json"
 	"errors"
+	"go.uber.org/zap"
 	"io"
 	"net/http"
 )
@@ -40,7 +41,11 @@ func (h *handlerHTTP) LogIn(w http.ResponseWriter, r *http.Request) {
 	//hash password
 	user.PasswordHash, user.PasswordSalt, err = secure.HashPassword([]byte(user.Password))
 	if err != nil {
-		h.Logger.Errorf("cant hash password, err: %v", err)
+		if h.Logger.Level() != zap.DebugLevel {
+			h.Logger.Errorf("cant hash password")
+		} else {
+			h.Logger.Debugf("cant hash password, err: %v", err)
+		}
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -52,7 +57,12 @@ func (h *handlerHTTP) LogIn(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	} else if err != nil {
-		h.Logger.Errorf("cant auth, err: %v", err)
+		if h.Logger.Level() != zap.DebugLevel {
+			h.Logger.Errorf("cant auth")
+		} else {
+			h.Logger.Debugf("cant auth, err: %v", err)
+		}
+
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}

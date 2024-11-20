@@ -7,6 +7,7 @@ package mocks
 import (
 	entities "GophKeeper/internal/app/entities"
 	context "context"
+	io "io"
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
@@ -51,18 +52,18 @@ func (mr *MockKeyKeeperMockRecorder) GetBankCardKey(userID, dataID interface{}) 
 }
 
 // GetBinaryDataKey mocks base method.
-func (m *MockKeyKeeper) GetBinaryDataKey(userID, dataID string) (string, error) {
+func (m *MockKeyKeeper) GetBinaryDataKey(userID, dataName string) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetBinaryDataKey", userID, dataID)
+	ret := m.ctrl.Call(m, "GetBinaryDataKey", userID, dataName)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetBinaryDataKey indicates an expected call of GetBinaryDataKey.
-func (mr *MockKeyKeeperMockRecorder) GetBinaryDataKey(userID, dataID interface{}) *gomock.Call {
+func (mr *MockKeyKeeperMockRecorder) GetBinaryDataKey(userID, dataName interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBinaryDataKey", reflect.TypeOf((*MockKeyKeeper)(nil).GetBinaryDataKey), userID, dataID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBinaryDataKey", reflect.TypeOf((*MockKeyKeeper)(nil).GetBinaryDataKey), userID, dataName)
 }
 
 // GetLoginAndPasswordKey mocks base method.
@@ -110,17 +111,17 @@ func (mr *MockKeyKeeperMockRecorder) SetBankCardKey(userID, dataID, key interfac
 }
 
 // SetBinaryDataKey mocks base method.
-func (m *MockKeyKeeper) SetBinaryDataKey(userID, dataID, key string) error {
+func (m *MockKeyKeeper) SetBinaryDataKey(userID, dataName, key string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SetBinaryDataKey", userID, dataID, key)
+	ret := m.ctrl.Call(m, "SetBinaryDataKey", userID, dataName, key)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // SetBinaryDataKey indicates an expected call of SetBinaryDataKey.
-func (mr *MockKeyKeeperMockRecorder) SetBinaryDataKey(userID, dataID, key interface{}) *gomock.Call {
+func (mr *MockKeyKeeperMockRecorder) SetBinaryDataKey(userID, dataName, key interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetBinaryDataKey", reflect.TypeOf((*MockKeyKeeper)(nil).SetBinaryDataKey), userID, dataID, key)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetBinaryDataKey", reflect.TypeOf((*MockKeyKeeper)(nil).SetBinaryDataKey), userID, dataName, key)
 }
 
 // SetLoginAndPasswordKey mocks base method.
@@ -175,9 +176,9 @@ func (m *MockStorage) EXPECT() *MockStorageMockRecorder {
 }
 
 // GetBankCard mocks base method.
-func (m *MockStorage) GetBankCard(ctx context.Context, last4Digits, ownerID int) ([]byte, int, error) {
+func (m *MockStorage) GetBankCard(ctx context.Context, ownerID, last4Digits int) ([]byte, int, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetBankCard", ctx, last4Digits, ownerID)
+	ret := m.ctrl.Call(m, "GetBankCard", ctx, ownerID, last4Digits)
 	ret0, _ := ret[0].([]byte)
 	ret1, _ := ret[1].(int)
 	ret2, _ := ret[2].(error)
@@ -185,9 +186,9 @@ func (m *MockStorage) GetBankCard(ctx context.Context, last4Digits, ownerID int)
 }
 
 // GetBankCard indicates an expected call of GetBankCard.
-func (mr *MockStorageMockRecorder) GetBankCard(ctx, last4Digits, ownerID interface{}) *gomock.Call {
+func (mr *MockStorageMockRecorder) GetBankCard(ctx, ownerID, last4Digits interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBankCard", reflect.TypeOf((*MockStorage)(nil).GetBankCard), ctx, last4Digits, ownerID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBankCard", reflect.TypeOf((*MockStorage)(nil).GetBankCard), ctx, ownerID, last4Digits)
 }
 
 // GetBinaryData mocks base method.
@@ -239,18 +240,18 @@ func (mr *MockStorageMockRecorder) GetText(ctx, ownerID, textName interface{}) *
 }
 
 // SaveBankCard mocks base method.
-func (m *MockStorage) SaveBankCard(ctx context.Context, userID int, cardData []byte) (int, error) {
+func (m *MockStorage) SaveBankCard(ctx context.Context, ownerID, lastFourDigits int, cardData []byte) (int, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SaveBankCard", ctx, userID, cardData)
+	ret := m.ctrl.Call(m, "SaveBankCard", ctx, ownerID, lastFourDigits, cardData)
 	ret0, _ := ret[0].(int)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // SaveBankCard indicates an expected call of SaveBankCard.
-func (mr *MockStorageMockRecorder) SaveBankCard(ctx, userID, cardData interface{}) *gomock.Call {
+func (mr *MockStorageMockRecorder) SaveBankCard(ctx, ownerID, lastFourDigits, cardData interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveBankCard", reflect.TypeOf((*MockStorage)(nil).SaveBankCard), ctx, userID, cardData)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveBankCard", reflect.TypeOf((*MockStorage)(nil).SaveBankCard), ctx, ownerID, lastFourDigits, cardData)
 }
 
 // SaveBinaryData mocks base method.
@@ -455,4 +456,58 @@ func (m *MockEncryptor) EncryptAESGCM(plaintext, key []byte) ([]byte, error) {
 func (mr *MockEncryptorMockRecorder) EncryptAESGCM(plaintext, key interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EncryptAESGCM", reflect.TypeOf((*MockEncryptor)(nil).EncryptAESGCM), plaintext, key)
+}
+
+// MockEncryptionWriterReaderFabric is a mock of EncryptionWriterReaderFabric interface.
+type MockEncryptionWriterReaderFabric struct {
+	ctrl     *gomock.Controller
+	recorder *MockEncryptionWriterReaderFabricMockRecorder
+}
+
+// MockEncryptionWriterReaderFabricMockRecorder is the mock recorder for MockEncryptionWriterReaderFabric.
+type MockEncryptionWriterReaderFabricMockRecorder struct {
+	mock *MockEncryptionWriterReaderFabric
+}
+
+// NewMockEncryptionWriterReaderFabric creates a new mock instance.
+func NewMockEncryptionWriterReaderFabric(ctrl *gomock.Controller) *MockEncryptionWriterReaderFabric {
+	mock := &MockEncryptionWriterReaderFabric{ctrl: ctrl}
+	mock.recorder = &MockEncryptionWriterReaderFabricMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockEncryptionWriterReaderFabric) EXPECT() *MockEncryptionWriterReaderFabricMockRecorder {
+	return m.recorder
+}
+
+// CreateNewEncryptedReader mocks base method.
+func (m *MockEncryptionWriterReaderFabric) CreateNewEncryptedReader(userID, dataName string, key []byte) (io.ReadCloser, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateNewEncryptedReader", userID, dataName, key)
+	ret0, _ := ret[0].(io.ReadCloser)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateNewEncryptedReader indicates an expected call of CreateNewEncryptedReader.
+func (mr *MockEncryptionWriterReaderFabricMockRecorder) CreateNewEncryptedReader(userID, dataName, key interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateNewEncryptedReader", reflect.TypeOf((*MockEncryptionWriterReaderFabric)(nil).CreateNewEncryptedReader), userID, dataName, key)
+}
+
+// CreateNewEncryptedWriter mocks base method.
+func (m *MockEncryptionWriterReaderFabric) CreateNewEncryptedWriter(userID, dataName string) (io.WriteCloser, []byte, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateNewEncryptedWriter", userID, dataName)
+	ret0, _ := ret[0].(io.WriteCloser)
+	ret1, _ := ret[1].([]byte)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// CreateNewEncryptedWriter indicates an expected call of CreateNewEncryptedWriter.
+func (mr *MockEncryptionWriterReaderFabricMockRecorder) CreateNewEncryptedWriter(userID, dataName interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateNewEncryptedWriter", reflect.TypeOf((*MockEncryptionWriterReaderFabric)(nil).CreateNewEncryptedWriter), userID, dataName)
 }
