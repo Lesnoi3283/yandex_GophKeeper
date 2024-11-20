@@ -3,6 +3,7 @@ package requiredInterfaces
 import (
 	"GophKeeper/internal/app/entities"
 	"context"
+	"io"
 )
 
 //go:generate mockgen -source=required_interfaces.go -destination=./mocks/mocks.go -package=mocks
@@ -16,8 +17,8 @@ type KeyKeeper interface {
 	GetTextDataKey(userID string, dataID string) (string, error)
 	SetLoginAndPasswordKey(userID string, dataID string, key string) error
 	GetLoginAndPasswordKey(userID string, dataID string) (string, error)
-	SetBinaryDataKey(userID string, dataID string, key string) error
-	GetBinaryDataKey(userID string, dataID string) (string, error)
+	SetBinaryDataKey(userID string, dataName string, key string) error
+	GetBinaryDataKey(userID string, dataName string) (string, error)
 }
 
 // Storage can save and return bank card data as a bytes slice.
@@ -25,8 +26,8 @@ type KeyKeeper interface {
 // You have to encrypt it yourself.
 // NOTE: dont forget to check if userID matches with a user who tries to get a card.
 type Storage interface {
-	SaveBankCard(ctx context.Context, userID int, cardData []byte) (id int, err error)
-	GetBankCard(ctx context.Context, last4Digits int, ownerID int) (data []byte, dataID int, err error)
+	SaveBankCard(ctx context.Context, ownerID int, lastFourDigits int, cardData []byte) (id int, err error)
+	GetBankCard(ctx context.Context, ownerID int, last4Digits int) (data []byte, dataID int, err error)
 	SaveLoginAndPassword(ctx context.Context, ownerID int, login string, password string) (id int, err error)
 	GetPasswordByLogin(ctx context.Context, ownerID int, login string) (password string, dataID int, err error)
 	SaveBinaryData(ctx context.Context, ownerID int, dataName string, data []byte) (id int, err error)
@@ -52,4 +53,11 @@ type JWTHelper interface {
 type Encryptor interface {
 	EncryptAESGCM(plaintext []byte, key []byte) ([]byte, error)
 	DecryptAESGCM(ciphertext []byte, key []byte) ([]byte, error)
+}
+
+// EncryptionWriterReaderFabric is an interface to create EncryptionWriter and EncryptionReader.
+// Returns writer and encryption key.
+type EncryptionWriterReaderFabric interface {
+	CreateNewEncryptedWriter(userID string, dataName string) (writer io.WriteCloser, key []byte, err error)
+	CreateNewEncryptedReader(userID string, dataName string, key []byte) (io.ReadCloser, error)
 }
