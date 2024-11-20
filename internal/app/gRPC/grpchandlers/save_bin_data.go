@@ -3,22 +3,17 @@ package grpchandlers
 import (
 	"GophKeeper/internal/app/gRPC/interceptors"
 	"GophKeeper/internal/app/gRPC/proto"
+	"encoding/binary"
+	"go.uber.org/zap"
+	"golang.org/x/crypto/chacha20poly1305"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"io"
 )
 
-//todo: создать EncryptionWriter, EncryptionReader, и EncryptionFileFabric.
-// EncryptionWriter будет использовать ChaCha20-Poly1305 и записывать в переданный ему в конструкторе файл чанки байт
-// (шифруя по переданному ему ключу). Write.
-// EncryptionFileFabric будет иметь единственную функцию CreateNewEncryptionWriter и создавать EncryptionFileFabric
-// (аналогично с ридером). Файл и ключ шифрования передаются в функцию фабрики и хранятся в полях райтера и ридера.
-// У райтера должны быть фукнции write и read соответственно, должны соответствовать интерфейсу io.Reader и io.Writer.
-
-//todo: возможно идея выше не очень и нужно придумать что-то еще. ОБЗАТЕЛЬНО ПОДУМАТЬ!!! Мб прям тут в грпс методе шифровать и записывать.
-
 // SaveBinData encrypts and saves a bin data into a file.
+// Authentication required - userID have to be in ctx as a string value.
 func (s *GophKeeperServer) SaveBinData(stream proto.GophKeeperService_SaveBinDataServer) (*emptypb.Empty, error) {
 	//get userID
 	userID := stream.Context().Value(interceptors.ContextUserIDKey)
@@ -26,27 +21,68 @@ func (s *GophKeeperServer) SaveBinData(stream proto.GophKeeperService_SaveBinDat
 		s.logger.Debug("no userID in context")
 		return nil, status.Error(codes.Unauthenticated, "Authentication required")
 	}
-	userIDInt, ok := userID.(int64)
+	userIDStr, ok := userID.(string)
 	if !ok {
 		s.logger.Error("userID not int")
 		return nil, status.Error(codes.Internal, "Internal server error")
 	}
 
-	//create file
+	//prepare encryption writer
+	var encWriter io.WriteCloser
+	key := make([]byte, chacha20poly1305.KeySize)
+	var dataName string
+	defer encWriter.Close()
 
 	for {
 		req, err := stream.Recv()
-		if err == io.EOF {
-			//todo: завершить сохранение файла и вернуть ответ
+
+		if err == io.EOF { //file saved, return the answer.
+
+			if binary.Size(req.Chunk) > binary.Size([1]byte{})*s.maxBinDataChunkSize {
+				s.logger.Debugf("too big data chunk, expected size: %v bytes, real size: %v", s.maxBinDataChunkSize, binary.Size(req.Chunk))
+				return nil, status.Errorf(codes.InvalidArgument, "Too big data chunk. Max chunk size is %v bytes, your size is %v bytes.", s.maxBinDataChunkSize, binary.Size(req.Chunk))
+			}
+
+			//save key
+			err = s.keyKeeper.SetBinaryDataKey(userIDStr, dataName, string(key))
+			if err != nil {
+				if s.logger.Level() != zap.DebugLevel {
+					s.logger.Errorf("cant save binary data key")
+				} else {
+					s.logger.Debugf("cant save binary data key, err: %v", err)
+				}
+
+				return nil, status.Error(codes.Internal, "Internal server error")
+			}
+
+			//success
+			break
 		}
 		if err != nil {
 			s.logger.Errorf("error while reading stream, err: %v", err)
 			return nil, status.Error(codes.Internal, "Internal server error")
 		}
 
+		//create writer if it`s first chunk
 		if len(req.DataName) > 0 {
-			//first request, we should create a file.
+			dataName = req.DataName
+			encWriter, key, err = s.encryptionRWFabric.CreateNewEncryptedWriter(userIDStr, dataName)
+			if err != nil {
+				s.logger.Errorf("error while creating encrypted writer, err: %v", err)
+				return nil, status.Error(codes.Internal, "Internal server error")
+			}
+		} else if len(req.DataName) == 0 && encWriter == nil {
+			s.logger.Error("First chunk must contain DataName")
+			return nil, status.Error(codes.InvalidArgument, "First chunk must contain DataName")
+		}
+
+		//save data
+		_, err = encWriter.Write(req.Chunk)
+		if err != nil {
+			s.logger.Errorf("error while writing chunk, err: %v", err)
+			return nil, status.Error(codes.Internal, "Internal server error")
 		}
 	}
 
+	return &emptypb.Empty{}, nil
 }

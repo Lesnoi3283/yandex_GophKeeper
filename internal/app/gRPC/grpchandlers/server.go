@@ -9,7 +9,10 @@ import (
 type GophKeeperServer struct {
 	proto.UnimplementedGophKeeperServiceServer
 
-	storage   requiredInterfaces.Storage
-	keyKeeper requiredInterfaces.KeyKeeper
-	logger    zap.SugaredLogger
+	storage            requiredInterfaces.Storage
+	keyKeeper          requiredInterfaces.KeyKeeper
+	logger             zap.SugaredLogger
+	encryptionRWFabric requiredInterfaces.EncryptionWriterReaderFabric
+	// maxBinDataChunkSize - in bytes.
+	maxBinDataChunkSize int
 }
