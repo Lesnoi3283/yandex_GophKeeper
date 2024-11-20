@@ -51,7 +51,7 @@ func (h *handlerHTTP) LogIn(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//LogIn
-	user.ID, err = h.UserManager.Auth(r.Context(), user)
+	user.ID, err = h.UserManager.AuthUser(r.Context(), user)
 	if errors.Is(err, storageerrors.NewErrNotExists()) {
 		h.Logger.Debugf("user not exists, err: %v", err)
 		w.WriteHeader(http.StatusUnauthorized)

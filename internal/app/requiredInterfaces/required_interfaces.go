@@ -21,10 +21,10 @@ type KeyKeeper interface {
 	GetBinaryDataKey(userID string, dataName string) (string, error)
 }
 
-// Storage can save and return bank card data as a bytes slice.
+// Storage can save and return data.
 // It can, but not have to encrypt your data.
 // You have to encrypt it yourself.
-// NOTE: dont forget to check if userID matches with a user who tries to get a card.
+// DON`T STORE AN ENCRYPTION KEY HERE!!! Use KeyKeeper! Follow PCI DSS 4.0 rules.
 type Storage interface {
 	SaveBankCard(ctx context.Context, ownerID int, lastFourDigits int, cardData []byte) (id int, err error)
 	GetBankCard(ctx context.Context, ownerID int, last4Digits int) (data []byte, dataID int, err error)
@@ -39,8 +39,8 @@ type Storage interface {
 // UserManager controls all manipulations with user.
 // Such as creation and authentication (by login and password).
 type UserManager interface {
-	Create(ctx context.Context, user entities.User) (id int, err error)
-	Auth(ctx context.Context, user entities.User) (id int, err error)
+	CreateUser(ctx context.Context, user entities.User) (id int, err error)
+	AuthUser(ctx context.Context, user entities.User) (id int, err error)
 }
 
 // JWTHelper creates new JWT and validates old ones.

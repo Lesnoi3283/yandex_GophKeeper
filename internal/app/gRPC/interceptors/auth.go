@@ -2,7 +2,9 @@ package interceptors
 
 import (
 	"GophKeeper/internal/app/requiredInterfaces"
+	secureerrors "GophKeeper/pkg/secure/ secureerrors"
 	"context"
+	"errors"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -34,12 +36,15 @@ func AuthInterceptor(logger zap.SugaredLogger, JWTHelper requiredInterfaces.JWTH
 
 		// Parse JWT
 		userID, err := JWTHelper.GetUserID(jwts[0])
-		if err != nil {
+		if errors.Is(err, secureerrors.NewErrorJWTIsNotValid()) {
+			logger.Debug("token is not valid")
+			return status.Errorf(codes.Unauthenticated, "token is not valid")
+		} else if err != nil {
 			logger.Debugf("JWT parsing error: %v", err)
 			return status.Errorf(codes.Unauthenticated, "bad JWT")
 		}
 
-		// Create a new context with the user ID
+		// CreateUser a new context with the user ID
 		newCtx := context.WithValue(ctx, ContextUserIDKey, strconv.Itoa(userID))
 
 		// Wrap the stream to inject the new context

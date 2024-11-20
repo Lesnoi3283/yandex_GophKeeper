@@ -322,34 +322,34 @@ func (m *MockUserManager) EXPECT() *MockUserManagerMockRecorder {
 	return m.recorder
 }
 
-// Auth mocks base method.
-func (m *MockUserManager) Auth(ctx context.Context, user entities.User) (int, error) {
+// AuthUser mocks base method.
+func (m *MockUserManager) AuthUser(ctx context.Context, user entities.User) (int, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Auth", ctx, user)
+	ret := m.ctrl.Call(m, "AuthUser", ctx, user)
 	ret0, _ := ret[0].(int)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// Auth indicates an expected call of Auth.
-func (mr *MockUserManagerMockRecorder) Auth(ctx, user interface{}) *gomock.Call {
+// AuthUser indicates an expected call of AuthUser.
+func (mr *MockUserManagerMockRecorder) AuthUser(ctx, user interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Auth", reflect.TypeOf((*MockUserManager)(nil).Auth), ctx, user)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AuthUser", reflect.TypeOf((*MockUserManager)(nil).AuthUser), ctx, user)
 }
 
-// Create mocks base method.
-func (m *MockUserManager) Create(ctx context.Context, user entities.User) (int, error) {
+// CreateUser mocks base method.
+func (m *MockUserManager) CreateUser(ctx context.Context, user entities.User) (int, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Create", ctx, user)
+	ret := m.ctrl.Call(m, "CreateUser", ctx, user)
 	ret0, _ := ret[0].(int)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// Create indicates an expected call of Create.
-func (mr *MockUserManagerMockRecorder) Create(ctx, user interface{}) *gomock.Call {
+// CreateUser indicates an expected call of CreateUser.
+func (mr *MockUserManagerMockRecorder) CreateUser(ctx, user interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockUserManager)(nil).Create), ctx, user)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateUser", reflect.TypeOf((*MockUserManager)(nil).CreateUser), ctx, user)
 }
 
 // MockJWTHelper is a mock of JWTHelper interface.

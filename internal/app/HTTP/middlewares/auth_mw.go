@@ -2,7 +2,9 @@ package middlewares
 
 import (
 	"GophKeeper/internal/app/requiredInterfaces"
+	secureerrors "GophKeeper/pkg/secure/ secureerrors"
 	"context"
+	"errors"
 	"go.uber.org/zap"
 	"net/http"
 )
@@ -31,7 +33,11 @@ func GetAuthMW(logger *zap.SugaredLogger, jh requiredInterfaces.JWTHelper) func(
 				}
 
 				userID, err := jh.GetUserID(cookie.Value)
-				if err != nil {
+				if errors.Is(err, secureerrors.NewErrorJWTIsNotValid()) {
+					logger.Debug("token is not valid")
+					w.WriteHeader(http.StatusUnauthorized)
+					return
+				} else if err != nil {
 					logger.Warnf("cant get userID from JWT string, err: %v", err)
 					w.WriteHeader(http.StatusUnauthorized)
 					return

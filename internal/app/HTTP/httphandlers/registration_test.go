@@ -44,7 +44,7 @@ func Test_handlerHTTP_RegisterUser(t *testing.T) {
 			fields: fields{
 				UserManager: func(c *gomock.Controller) requiredInterfaces.UserManager {
 					um := mocks.NewMockUserManager(c)
-					um.EXPECT().Create(gomock.Any(), gomock.AssignableToTypeOf(entities.User{})).DoAndReturn(func(_ context.Context, u entities.User) (int, error) {
+					um.EXPECT().CreateUser(gomock.Any(), gomock.AssignableToTypeOf(entities.User{})).DoAndReturn(func(_ context.Context, u entities.User) (int, error) {
 						assert.Equal(t, "qwerty@example.ru", u.Login)
 						assert.NotEmpty(t, u.PasswordHash, "Password hash is empty")
 						return 1, nil
@@ -96,7 +96,7 @@ func Test_handlerHTTP_RegisterUser(t *testing.T) {
 			fields: fields{
 				UserManager: func(c *gomock.Controller) requiredInterfaces.UserManager {
 					um := mocks.NewMockUserManager(c)
-					um.EXPECT().Create(gomock.Any(), gomock.Any()).Return(0, storageerrors.NewErrAlreadyExists())
+					um.EXPECT().CreateUser(gomock.Any(), gomock.Any()).Return(0, storageerrors.NewErrAlreadyExists())
 					return um
 				},
 				JWTHelper: nil,
@@ -113,7 +113,7 @@ func Test_handlerHTTP_RegisterUser(t *testing.T) {
 			fields: fields{
 				UserManager: func(c *gomock.Controller) requiredInterfaces.UserManager {
 					um := mocks.NewMockUserManager(c)
-					um.EXPECT().Create(gomock.Any(), gomock.Any()).Return(0, fmt.Errorf("some test error"))
+					um.EXPECT().CreateUser(gomock.Any(), gomock.Any()).Return(0, fmt.Errorf("some test error"))
 					return um
 				},
 				JWTHelper: nil,
@@ -130,7 +130,7 @@ func Test_handlerHTTP_RegisterUser(t *testing.T) {
 			fields: fields{
 				UserManager: func(c *gomock.Controller) requiredInterfaces.UserManager {
 					um := mocks.NewMockUserManager(c)
-					um.EXPECT().Create(gomock.Any(), gomock.Any()).Return(1, nil)
+					um.EXPECT().CreateUser(gomock.Any(), gomock.Any()).Return(1, nil)
 					return um
 				},
 				JWTHelper: func(c *gomock.Controller) requiredInterfaces.JWTHelper {
