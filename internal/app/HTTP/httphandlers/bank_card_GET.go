@@ -36,6 +36,7 @@ func (h *handlerHTTP) BankCardGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	//todo: тут баг
 	lastFourDigitsInt := int(binary.BigEndian.Uint64(lastFourDigits))
 
 	//get login and encryptedPassword

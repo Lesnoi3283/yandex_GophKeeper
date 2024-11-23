@@ -42,7 +42,8 @@ func GetAuthMW(logger *zap.SugaredLogger, jh requiredInterfaces.JWTHelper) func(
 					w.WriteHeader(http.StatusUnauthorized)
 					return
 				}
-				r.WithContext(context.WithValue(r.Context(), UserIDContextKey, userID))
+
+				next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), UserIDContextKey, userID)))
 			}
 		})
 	}

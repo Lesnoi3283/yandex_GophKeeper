@@ -14,6 +14,10 @@ import (
 // It was created to make possible to mock encryption functions.
 type EncryptorAESGCM struct{}
 
+func NewEncryptorAESGSM() *EncryptorAESGCM {
+	return &EncryptorAESGCM{}
+}
+
 // EncryptAESGCM encrypts data using AES-GSM.
 // key must have 32-byte len for AES-256.
 func (e *EncryptorAESGCM) EncryptAESGCM(plaintext []byte, key []byte) ([]byte, error) {

@@ -2,9 +2,11 @@ package PostgreSQL
 
 import (
 	"GophKeeper/internal/app/entities"
+	"GophKeeper/pkg/storages/storageerrors"
 	"context"
 	"database/sql"
-	_ "github.com/lib/pq"
+	"errors"
+	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
 type PostgresDB struct {
@@ -13,7 +15,8 @@ type PostgresDB struct {
 
 // NewPostgresDB
 func NewPostgresDB(connString string) (*PostgresDB, error) {
-	db, err := sql.Open("postgres", connString)
+
+	db, err := sql.Open("pgx", connString)
 	if err != nil {
 		return nil, err
 	}
@@ -145,5 +148,8 @@ func (p *PostgresDB) AuthUser(ctx context.Context, user entities.User) (int, err
 	var id int
 	query := `SELECT id FROM users WHERE login=$1 AND password=$2`
 	err := p.db.QueryRowContext(ctx, query, user.Login, user.Password).Scan(&id)
+	if errors.Is(err, sql.ErrNoRows) {
+		return 0, storageerrors.NewErrNotExists()
+	}
 	return id, err
 }

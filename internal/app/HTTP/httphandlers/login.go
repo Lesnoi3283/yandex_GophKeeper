@@ -1,6 +1,7 @@
 package httphandlers
 
 import (
+	"GophKeeper/internal/app/HTTP/middlewares"
 	"GophKeeper/internal/app/entities"
 	"GophKeeper/pkg/secure"
 	"GophKeeper/pkg/storages/storageerrors"
@@ -75,8 +76,16 @@ func (h *handlerHTTP) LogIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	cookie := &http.Cookie{
+		Name:  middlewares.JWTCookieName,
+		Value: JWTString,
+	}
+	http.SetCookie(w, cookie)
+
 	//return a response
 	w.WriteHeader(http.StatusOK)
-	w.Header().Set("Content-Type", "text/plain")
+	w.Header().Set("Content-Type", "application/json")
 	w.Write([]byte(JWTString))
 }
+
+//todo: убрать жвт из тела ответа, оставить только в куках.
