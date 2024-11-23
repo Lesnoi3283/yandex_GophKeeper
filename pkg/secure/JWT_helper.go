@@ -1,7 +1,7 @@
 package secure
 
 import (
-	secureerrors "GophKeeper/pkg/secure/ secureerrors"
+	"GophKeeper/pkg/secure/secureerrors"
 	"fmt"
 	"github.com/golang-jwt/jwt/v4"
 	"sync"

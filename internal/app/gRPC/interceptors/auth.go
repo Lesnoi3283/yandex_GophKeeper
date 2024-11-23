@@ -2,7 +2,7 @@ package interceptors
 
 import (
 	"GophKeeper/internal/app/requiredInterfaces"
-	secureerrors "GophKeeper/pkg/secure/ secureerrors"
+	secureerrors "GophKeeper/pkg/secure/secureerrors"
 	"context"
 	"errors"
 	"go.uber.org/zap"
