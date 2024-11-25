@@ -63,7 +63,7 @@ func main() {
 	encryptor := secure.NewEncryptorAESGSM()
 
 	//build HTTP router
-	r := httphandlers.NewChiRouter(sugar, storage, jh, storage, hashiCorp, encryptor)
+	r := httphandlers.NewChiRouter(sugar, storage, jh, storage, hashiCorp, encryptor, conf)
 
 	//prepare waitGroup
 	wg := sync.WaitGroup{}

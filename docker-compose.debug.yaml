@@ -1,3 +1,7 @@
+#This docker-compose file will run HashiCorp Vault and Postgresql database.
+#You should run GophKeeper yourself on host device.
+#Use it for DEBUG ONLY.
+#(if you have a question why I have created it - just to use it with GoLand debugger).
 version: '3.3'
 
 services:
@@ -12,7 +16,7 @@ services:
     volumes:
       - postgres-data:/var/lib/postgresql/data
     ports:
-      - "5432:5432" # Проброс порта PostgreSQL на хост
+      - "5432:5432"
     networks:
       - app-network
 
@@ -23,13 +27,25 @@ services:
     environment:
       VAULT_DEV_ROOT_TOKEN_ID: some_vault_root_token
       VAULT_DEV_LISTEN_ADDRESS: "0.0.0.0:8200"
-    command: "server -dev -dev-root-token-id=some_vault_root_token"
+      VAULT_ADDR: "http://127.0.0.1:8200"
+    command: >
+      /bin/sh -c "
+      vault server -dev -dev-root-token-id=some_vault_root_token &
+      sleep 5 &&
+      export VAULT_TOKEN=some_vault_root_token &&
+      vault secrets enable -path=bank_cards kv &&
+      vault secrets enable -path=login_and_password kv &&
+      vault secrets enable -path=text_data kv &&
+      vault secrets enable -path=bin_data kv &&
+      wait
+      "
     ports:
-      - "8200:8200" # Проброс порта Vault на хост
+      - "8200:8200"
     volumes:
       - vault-data:/vault/file
     networks:
       - app-network
+
 
 networks:
   app-network:

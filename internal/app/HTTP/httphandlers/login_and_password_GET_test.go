@@ -54,7 +54,7 @@ func Test_handlerHTTP_PasswordGet(t *testing.T) {
 				},
 				Encryptor: func(c *gomock.Controller) requiredInterfaces.Encryptor {
 					e := mocks.NewMockEncryptor(c)
-					e.EXPECT().DecryptAESGCM([]byte("encryptedPassword"), []byte("encryptionKey")).Return([]byte("decryptedPassword"), nil)
+					e.EXPECT().DecryptAESGCM("encryptedPassword", []byte("encryptionKey")).Return([]byte("decryptedPassword"), nil)
 					return e
 				},
 			},

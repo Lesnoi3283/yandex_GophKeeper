@@ -56,7 +56,7 @@ func (h *handlerHTTP) PasswordGet(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//decrypt
-	passwordBytes, err := h.Encryptor.DecryptAESGCM([]byte(encryptedPassword), []byte(key))
+	passwordBytes, err := h.Encryptor.DecryptAESGCM(encryptedPassword, []byte(key))
 	if err != nil {
 		h.Logger.Errorf("cannot decrypt password")
 		h.Logger.Debugf("cannot decrypt password, err: %v", err)

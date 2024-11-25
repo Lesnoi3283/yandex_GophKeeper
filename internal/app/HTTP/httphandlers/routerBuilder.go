@@ -1,6 +1,7 @@
 package httphandlers
 
 import (
+	"GophKeeper/config"
 	"GophKeeper/internal/app/HTTP/middlewares"
 	"GophKeeper/internal/app/requiredInterfaces"
 	"github.com/go-chi/chi"
@@ -14,11 +15,13 @@ type handlerHTTP struct {
 	JWTHelper   requiredInterfaces.JWTHelper
 	KeyKeeper   requiredInterfaces.KeyKeeper
 	Encryptor   requiredInterfaces.Encryptor
+	Conf        config.Config
 }
 
 func NewChiRouter(logger *zap.SugaredLogger, um requiredInterfaces.UserManager,
 	jh requiredInterfaces.JWTHelper, storage requiredInterfaces.Storage,
-	keeper requiredInterfaces.KeyKeeper, encryptor requiredInterfaces.Encryptor) chi.Router {
+	keeper requiredInterfaces.KeyKeeper, encryptor requiredInterfaces.Encryptor,
+	conf config.Config) chi.Router {
 
 	//create handler
 	httphandler := handlerHTTP{
@@ -28,6 +31,7 @@ func NewChiRouter(logger *zap.SugaredLogger, um requiredInterfaces.UserManager,
 		JWTHelper:   jh,
 		KeyKeeper:   keeper,
 		Encryptor:   encryptor,
+		Conf:        conf,
 	}
 
 	r := chi.NewRouter()

@@ -54,7 +54,7 @@ func Test_handlerHTTP_TextDataSave(t *testing.T) {
 				},
 				Encryptor: func(c *gomock.Controller) requiredInterfaces.Encryptor {
 					en := mocks.NewMockEncryptor(c)
-					en.EXPECT().EncryptAESGCM(gomock.Any(), gomock.Any()).Return([]byte("encryptedText"), nil)
+					en.EXPECT().EncryptAESGCM(gomock.Any(), gomock.Any()).Return("encryptedText", nil)
 					return en
 				},
 			},
@@ -135,7 +135,7 @@ func Test_handlerHTTP_TextDataSave(t *testing.T) {
 			fields: fields{
 				Encryptor: func(c *gomock.Controller) requiredInterfaces.Encryptor {
 					en := mocks.NewMockEncryptor(c)
-					en.EXPECT().EncryptAESGCM(gomock.Any(), gomock.Any()).Return(nil, fmt.Errorf("encryption error"))
+					en.EXPECT().EncryptAESGCM(gomock.Any(), gomock.Any()).Return("", fmt.Errorf("encryption error"))
 					return en
 				},
 			},
@@ -160,7 +160,7 @@ func Test_handlerHTTP_TextDataSave(t *testing.T) {
 				},
 				Encryptor: func(c *gomock.Controller) requiredInterfaces.Encryptor {
 					en := mocks.NewMockEncryptor(c)
-					en.EXPECT().EncryptAESGCM(gomock.Any(), gomock.Any()).Return([]byte("encryptedText"), nil)
+					en.EXPECT().EncryptAESGCM(gomock.Any(), gomock.Any()).Return("encryptedText", nil)
 					return en
 				},
 			},
@@ -190,7 +190,7 @@ func Test_handlerHTTP_TextDataSave(t *testing.T) {
 				},
 				Encryptor: func(c *gomock.Controller) requiredInterfaces.Encryptor {
 					en := mocks.NewMockEncryptor(c)
-					en.EXPECT().EncryptAESGCM(gomock.Any(), gomock.Any()).Return([]byte("encryptedText"), nil)
+					en.EXPECT().EncryptAESGCM(gomock.Any(), gomock.Any()).Return("encryptedText", nil)
 					return en
 				},
 			},

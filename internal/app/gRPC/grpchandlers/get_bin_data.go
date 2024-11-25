@@ -60,15 +60,7 @@ func (s *GophKeeperServer) GetBinData(req *proto.GetBinDataRequest, stream proto
 		n, err := encReader.Read(buf)
 		if err == io.EOF {
 			// Success
-			if err != nil {
-				if s.logger.Level() != zap.DebugLevel {
-					s.logger.Errorf("Failed to close reader")
-				} else {
-					s.logger.Debugf("Failed to close reader, err: %v", err)
-				}
-				return status.Error(codes.Internal, "Internal server error")
-			}
-			break
+			return status.Error(codes.OK, "ok")
 		}
 		if err != nil {
 			if s.logger.Level() != zap.DebugLevel {

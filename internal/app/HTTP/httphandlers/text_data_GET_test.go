@@ -44,7 +44,7 @@ func Test_handlerHTTP_TextDataGet(t *testing.T) {
 			fields: fields{
 				Storage: func(c *gomock.Controller) requiredInterfaces.Storage {
 					st := mocks.NewMockStorage(c)
-					st.EXPECT().GetText(gomock.Any(), 1, "SomeTextName").Return([]byte("encryptedText"), 100, nil)
+					st.EXPECT().GetText(gomock.Any(), 1, "SomeTextName").Return("encryptedText", 100, nil)
 					return st
 				},
 				KeyKeeper: func(c *gomock.Controller) requiredInterfaces.KeyKeeper {
@@ -54,7 +54,7 @@ func Test_handlerHTTP_TextDataGet(t *testing.T) {
 				},
 				Encryptor: func(c *gomock.Controller) requiredInterfaces.Encryptor {
 					en := mocks.NewMockEncryptor(c)
-					en.EXPECT().DecryptAESGCM([]byte("encryptedText"), []byte("encryptionKey")).Return([]byte("decryptedText"), nil)
+					en.EXPECT().DecryptAESGCM("encryptedText", []byte("encryptionKey")).Return([]byte("decryptedText"), nil)
 					return en
 				},
 			},
@@ -96,7 +96,7 @@ func Test_handlerHTTP_TextDataGet(t *testing.T) {
 			fields: fields{
 				Storage: func(c *gomock.Controller) requiredInterfaces.Storage {
 					st := mocks.NewMockStorage(c)
-					st.EXPECT().GetText(gomock.Any(), 1, "SomeTextName").Return(nil, 0, fmt.Errorf("storage error"))
+					st.EXPECT().GetText(gomock.Any(), 1, "SomeTextName").Return("", 0, fmt.Errorf("storage error"))
 					return st
 				},
 				KeyKeeper: nil,
@@ -118,7 +118,7 @@ func Test_handlerHTTP_TextDataGet(t *testing.T) {
 			fields: fields{
 				Storage: func(c *gomock.Controller) requiredInterfaces.Storage {
 					st := mocks.NewMockStorage(c)
-					st.EXPECT().GetText(gomock.Any(), 1, "SomeTextName").Return([]byte("encryptedText"), 100, nil)
+					st.EXPECT().GetText(gomock.Any(), 1, "SomeTextName").Return("encryptedText", 100, nil)
 					return st
 				},
 				KeyKeeper: func(c *gomock.Controller) requiredInterfaces.KeyKeeper {
@@ -144,7 +144,7 @@ func Test_handlerHTTP_TextDataGet(t *testing.T) {
 			fields: fields{
 				Storage: func(c *gomock.Controller) requiredInterfaces.Storage {
 					st := mocks.NewMockStorage(c)
-					st.EXPECT().GetText(gomock.Any(), 1, "SomeTextName").Return([]byte("encryptedText"), 100, nil)
+					st.EXPECT().GetText(gomock.Any(), 1, "SomeTextName").Return("encryptedText", 100, nil)
 					return st
 				},
 				KeyKeeper: func(c *gomock.Controller) requiredInterfaces.KeyKeeper {
@@ -154,7 +154,7 @@ func Test_handlerHTTP_TextDataGet(t *testing.T) {
 				},
 				Encryptor: func(c *gomock.Controller) requiredInterfaces.Encryptor {
 					en := mocks.NewMockEncryptor(c)
-					en.EXPECT().DecryptAESGCM([]byte("encryptedText"), []byte("encryptionKey")).Return(nil, fmt.Errorf("decryption error"))
+					en.EXPECT().DecryptAESGCM("encryptedText", []byte("encryptionKey")).Return(nil, fmt.Errorf("decryption error"))
 					return en
 				},
 			},

@@ -176,10 +176,10 @@ func (m *MockStorage) EXPECT() *MockStorageMockRecorder {
 }
 
 // GetBankCard mocks base method.
-func (m *MockStorage) GetBankCard(ctx context.Context, ownerID, last4Digits int) ([]byte, int, error) {
+func (m *MockStorage) GetBankCard(ctx context.Context, ownerID, last4Digits int) (string, int, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetBankCard", ctx, ownerID, last4Digits)
-	ret0, _ := ret[0].([]byte)
+	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(int)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
@@ -189,22 +189,6 @@ func (m *MockStorage) GetBankCard(ctx context.Context, ownerID, last4Digits int)
 func (mr *MockStorageMockRecorder) GetBankCard(ctx, ownerID, last4Digits interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBankCard", reflect.TypeOf((*MockStorage)(nil).GetBankCard), ctx, ownerID, last4Digits)
-}
-
-// GetBinaryData mocks base method.
-func (m *MockStorage) GetBinaryData(ctx context.Context, ownerID int, dataName string) ([]byte, int, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetBinaryData", ctx, ownerID, dataName)
-	ret0, _ := ret[0].([]byte)
-	ret1, _ := ret[1].(int)
-	ret2, _ := ret[2].(error)
-	return ret0, ret1, ret2
-}
-
-// GetBinaryData indicates an expected call of GetBinaryData.
-func (mr *MockStorageMockRecorder) GetBinaryData(ctx, ownerID, dataName interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBinaryData", reflect.TypeOf((*MockStorage)(nil).GetBinaryData), ctx, ownerID, dataName)
 }
 
 // GetPasswordByLogin mocks base method.
@@ -224,10 +208,10 @@ func (mr *MockStorageMockRecorder) GetPasswordByLogin(ctx, ownerID, login interf
 }
 
 // GetText mocks base method.
-func (m *MockStorage) GetText(ctx context.Context, ownerID int, textName string) ([]byte, int, error) {
+func (m *MockStorage) GetText(ctx context.Context, ownerID int, textName string) (string, int, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetText", ctx, ownerID, textName)
-	ret0, _ := ret[0].([]byte)
+	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(int)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
@@ -240,7 +224,7 @@ func (mr *MockStorageMockRecorder) GetText(ctx, ownerID, textName interface{}) *
 }
 
 // SaveBankCard mocks base method.
-func (m *MockStorage) SaveBankCard(ctx context.Context, ownerID, lastFourDigits int, cardData []byte) (int, error) {
+func (m *MockStorage) SaveBankCard(ctx context.Context, ownerID, lastFourDigits int, cardData string) (int, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SaveBankCard", ctx, ownerID, lastFourDigits, cardData)
 	ret0, _ := ret[0].(int)
@@ -252,21 +236,6 @@ func (m *MockStorage) SaveBankCard(ctx context.Context, ownerID, lastFourDigits 
 func (mr *MockStorageMockRecorder) SaveBankCard(ctx, ownerID, lastFourDigits, cardData interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveBankCard", reflect.TypeOf((*MockStorage)(nil).SaveBankCard), ctx, ownerID, lastFourDigits, cardData)
-}
-
-// SaveBinaryData mocks base method.
-func (m *MockStorage) SaveBinaryData(ctx context.Context, ownerID int, dataName string, data []byte) (int, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SaveBinaryData", ctx, ownerID, dataName, data)
-	ret0, _ := ret[0].(int)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// SaveBinaryData indicates an expected call of SaveBinaryData.
-func (mr *MockStorageMockRecorder) SaveBinaryData(ctx, ownerID, dataName, data interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveBinaryData", reflect.TypeOf((*MockStorage)(nil).SaveBinaryData), ctx, ownerID, dataName, data)
 }
 
 // SaveLoginAndPassword mocks base method.
@@ -429,7 +398,7 @@ func (m *MockEncryptor) EXPECT() *MockEncryptorMockRecorder {
 }
 
 // DecryptAESGCM mocks base method.
-func (m *MockEncryptor) DecryptAESGCM(ciphertext, key []byte) ([]byte, error) {
+func (m *MockEncryptor) DecryptAESGCM(ciphertext string, key []byte) ([]byte, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DecryptAESGCM", ciphertext, key)
 	ret0, _ := ret[0].([]byte)
@@ -444,10 +413,10 @@ func (mr *MockEncryptorMockRecorder) DecryptAESGCM(ciphertext, key interface{}) 
 }
 
 // EncryptAESGCM mocks base method.
-func (m *MockEncryptor) EncryptAESGCM(plaintext, key []byte) ([]byte, error) {
+func (m *MockEncryptor) EncryptAESGCM(plaintext, key []byte) (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "EncryptAESGCM", plaintext, key)
-	ret0, _ := ret[0].([]byte)
+	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

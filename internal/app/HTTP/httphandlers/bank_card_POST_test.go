@@ -54,7 +54,7 @@ func Test_handlerHTTP_BankCardSave(t *testing.T) {
 				},
 				Encryptor: func(c *gomock.Controller) requiredInterfaces.Encryptor {
 					en := mocks.NewMockEncryptor(c)
-					en.EXPECT().EncryptAESGCM(gomock.Any(), gomock.Any()).Return([]byte("encryptedData"), nil)
+					en.EXPECT().EncryptAESGCM(gomock.Any(), gomock.Any()).Return("encryptedData", nil)
 					return en
 				},
 			},
@@ -161,7 +161,7 @@ func Test_handlerHTTP_BankCardSave(t *testing.T) {
 			fields: fields{
 				Encryptor: func(c *gomock.Controller) requiredInterfaces.Encryptor {
 					en := mocks.NewMockEncryptor(c)
-					en.EXPECT().EncryptAESGCM(gomock.Any(), gomock.Any()).Return(nil, fmt.Errorf("encryption error"))
+					en.EXPECT().EncryptAESGCM(gomock.Any(), gomock.Any()).Return("", fmt.Errorf("encryption error"))
 					return en
 				},
 			},
@@ -186,7 +186,7 @@ func Test_handlerHTTP_BankCardSave(t *testing.T) {
 				},
 				Encryptor: func(c *gomock.Controller) requiredInterfaces.Encryptor {
 					en := mocks.NewMockEncryptor(c)
-					en.EXPECT().EncryptAESGCM(gomock.Any(), gomock.Any()).Return([]byte("encryptedData"), nil)
+					en.EXPECT().EncryptAESGCM(gomock.Any(), gomock.Any()).Return("encryptedData", nil)
 					return en
 				},
 			},
@@ -216,7 +216,7 @@ func Test_handlerHTTP_BankCardSave(t *testing.T) {
 				},
 				Encryptor: func(c *gomock.Controller) requiredInterfaces.Encryptor {
 					en := mocks.NewMockEncryptor(c)
-					en.EXPECT().EncryptAESGCM(gomock.Any(), gomock.Any()).Return([]byte("encryptedData"), nil)
+					en.EXPECT().EncryptAESGCM(gomock.Any(), gomock.Any()).Return("encryptedData", nil)
 					return en
 				},
 			},

@@ -7,7 +7,6 @@ import (
 	"GophKeeper/internal/app/requiredInterfaces/mocks"
 	"bytes"
 	"context"
-	"encoding/binary"
 	"encoding/gob"
 	"fmt"
 	"github.com/golang/mock/gomock"
@@ -48,7 +47,7 @@ func Test_handlerHTTP_BankCardGet(t *testing.T) {
 			fields: fields{
 				Storage: func(c *gomock.Controller) requiredInterfaces.Storage {
 					st := mocks.NewMockStorage(c)
-					st.EXPECT().GetBankCard(gomock.Any(), 1, 1234).Return([]byte("encryptedCardData"), 100, nil)
+					st.EXPECT().GetBankCard(gomock.Any(), 1, 1234).Return("encryptedCardData", 100, nil)
 					return st
 				},
 				KeyKeeper: func(c *gomock.Controller) requiredInterfaces.KeyKeeper {
@@ -67,16 +66,14 @@ func Test_handlerHTTP_BankCardGet(t *testing.T) {
 						OwnerFirstname: "IVAN",
 					})
 					require.NoError(t, err, "error while preparing tests. Cant encode a bank card data")
-					en.EXPECT().DecryptAESGCM([]byte("encryptedCardData"), []byte("encryptionKey")).Return(buf.Bytes(), nil)
+					en.EXPECT().DecryptAESGCM("encryptedCardData", []byte("encryptionKey")).Return(buf.Bytes(), nil)
 					return en
 				},
 			},
 			args: args{
 				w: httptest.NewRecorder(),
 				req: func() *http.Request {
-					lastFour := make([]byte, 8)
-					binary.BigEndian.PutUint64(lastFour, 1234)
-					r := httptest.NewRequest(http.MethodPost, url, bytes.NewReader(lastFour))
+					r := httptest.NewRequest(http.MethodPost, url, bytes.NewReader([]byte(`1234`)))
 					r = r.WithContext(context.WithValue(r.Context(), middlewares.UserIDContextKey, 1))
 					return r
 				}(),
@@ -111,16 +108,14 @@ func Test_handlerHTTP_BankCardGet(t *testing.T) {
 			fields: fields{
 				Storage: func(c *gomock.Controller) requiredInterfaces.Storage {
 					st := mocks.NewMockStorage(c)
-					st.EXPECT().GetBankCard(gomock.Any(), 1, 1234).Return(nil, 0, fmt.Errorf("storage error"))
+					st.EXPECT().GetBankCard(gomock.Any(), 1, 1234).Return("", 0, fmt.Errorf("storage error"))
 					return st
 				},
 			},
 			args: args{
 				w: httptest.NewRecorder(),
 				req: func() *http.Request {
-					lastFour := make([]byte, 8)
-					binary.BigEndian.PutUint64(lastFour, 1234)
-					r := httptest.NewRequest(http.MethodPost, url, bytes.NewReader(lastFour))
+					r := httptest.NewRequest(http.MethodPost, url, bytes.NewReader([]byte(`1234`)))
 					r = r.WithContext(context.WithValue(r.Context(), middlewares.UserIDContextKey, 1))
 					return r
 				}(),
@@ -133,7 +128,7 @@ func Test_handlerHTTP_BankCardGet(t *testing.T) {
 			fields: fields{
 				Storage: func(c *gomock.Controller) requiredInterfaces.Storage {
 					st := mocks.NewMockStorage(c)
-					st.EXPECT().GetBankCard(gomock.Any(), 1, 1234).Return([]byte("encryptedCardData"), 100, nil)
+					st.EXPECT().GetBankCard(gomock.Any(), 1, 1234).Return("encryptedCardData", 100, nil)
 					return st
 				},
 				KeyKeeper: func(c *gomock.Controller) requiredInterfaces.KeyKeeper {
@@ -145,9 +140,7 @@ func Test_handlerHTTP_BankCardGet(t *testing.T) {
 			args: args{
 				w: httptest.NewRecorder(),
 				req: func() *http.Request {
-					lastFour := make([]byte, 8)
-					binary.BigEndian.PutUint64(lastFour, 1234)
-					r := httptest.NewRequest(http.MethodPost, url, bytes.NewReader(lastFour))
+					r := httptest.NewRequest(http.MethodPost, url, bytes.NewReader([]byte(`1234`)))
 					r = r.WithContext(context.WithValue(r.Context(), middlewares.UserIDContextKey, 1))
 					return r
 				}(),
@@ -160,7 +153,7 @@ func Test_handlerHTTP_BankCardGet(t *testing.T) {
 			fields: fields{
 				Storage: func(c *gomock.Controller) requiredInterfaces.Storage {
 					st := mocks.NewMockStorage(c)
-					st.EXPECT().GetBankCard(gomock.Any(), 1, 1234).Return([]byte("encryptedCardData"), 100, nil)
+					st.EXPECT().GetBankCard(gomock.Any(), 1, 1234).Return("encryptedCardData", 100, nil)
 					return st
 				},
 				KeyKeeper: func(c *gomock.Controller) requiredInterfaces.KeyKeeper {
@@ -170,16 +163,14 @@ func Test_handlerHTTP_BankCardGet(t *testing.T) {
 				},
 				Encryptor: func(c *gomock.Controller) requiredInterfaces.Encryptor {
 					en := mocks.NewMockEncryptor(c)
-					en.EXPECT().DecryptAESGCM([]byte("encryptedCardData"), []byte("encryptionKey")).Return(nil, fmt.Errorf("decryption error"))
+					en.EXPECT().DecryptAESGCM("encryptedCardData", []byte("encryptionKey")).Return(nil, fmt.Errorf("decryption error"))
 					return en
 				},
 			},
 			args: args{
 				w: httptest.NewRecorder(),
 				req: func() *http.Request {
-					lastFour := make([]byte, 8)
-					binary.BigEndian.PutUint64(lastFour, 1234)
-					r := httptest.NewRequest(http.MethodPost, url, bytes.NewReader(lastFour))
+					r := httptest.NewRequest(http.MethodPost, url, bytes.NewReader([]byte(`1234`)))
 					r = r.WithContext(context.WithValue(r.Context(), middlewares.UserIDContextKey, 1))
 					return r
 				}(),

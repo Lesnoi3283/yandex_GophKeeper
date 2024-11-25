@@ -1,6 +1,7 @@
 package HashiCorpVault
 
 import (
+	"encoding/base64"
 	"fmt"
 	"path"
 
@@ -13,7 +14,8 @@ const (
 	loginAndPasswordPath = "login_and_password"
 	textDataPath         = "text_data"
 	binDataPath          = "bin_data"
-	keyForAKey           = "key"
+	// keyForAKey IS NOT A PATH!!!!
+	keyForAKey = "key"
 )
 
 // HashiCorpVault implements KeyKeeper interface and can store keys safe.
@@ -39,7 +41,9 @@ func NewHashiCorpVault(address string, token string) (*HashiCorpVault, error) {
 
 // SetKey saves key to the path.
 func (v *HashiCorpVault) SetKey(path string, key string) error {
-	_, err := v.client.Logical().Write(path, map[string]interface{}{keyForAKey: key})
+	keyBase64 := base64.StdEncoding.EncodeToString([]byte(key))
+
+	_, err := v.client.Logical().Write(path, map[string]interface{}{keyForAKey: keyBase64})
 	if err != nil {
 		return fmt.Errorf("failed to set key, err: %v", err)
 	}
@@ -69,7 +73,13 @@ func (v *HashiCorpVault) GetKey(path string) (string, error) {
 	if !ok {
 		return "", fmt.Errorf("key is not a string")
 	}
-	return keyStr, nil
+
+	unbase64, err := base64.StdEncoding.DecodeString(keyStr)
+	if err != nil {
+		return "", fmt.Errorf("failed to decode key from base64, err: %v", err)
+	}
+
+	return string(unbase64), nil
 }
 
 func (v *HashiCorpVault) SetBankCardKey(userID, dataID, key string) error {
@@ -78,7 +88,7 @@ func (v *HashiCorpVault) SetBankCardKey(userID, dataID, key string) error {
 }
 
 func (v *HashiCorpVault) GetBankCardKey(userID, dataID string) (string, error) {
-	fullPath := path.Join(loginAndPasswordPath, userID, dataID)
+	fullPath := path.Join(bankCardPath, userID, dataID)
 	return v.GetKey(fullPath)
 }
 
@@ -88,7 +98,7 @@ func (v *HashiCorpVault) SetTextDataKey(userID, dataID, key string) error {
 }
 
 func (v *HashiCorpVault) GetTextDataKey(userID, dataID string) (string, error) {
-	fullPath := path.Join(loginAndPasswordPath, userID, dataID)
+	fullPath := path.Join(textDataPath, userID, dataID)
 	return v.GetKey(fullPath)
 }
 

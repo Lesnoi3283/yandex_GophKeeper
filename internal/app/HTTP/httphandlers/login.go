@@ -10,6 +10,7 @@ import (
 	"go.uber.org/zap"
 	"io"
 	"net/http"
+	"time"
 )
 
 func (h *handlerHTTP) LogIn(w http.ResponseWriter, r *http.Request) {
@@ -77,15 +78,12 @@ func (h *handlerHTTP) LogIn(w http.ResponseWriter, r *http.Request) {
 	}
 
 	cookie := &http.Cookie{
-		Name:  middlewares.JWTCookieName,
-		Value: JWTString,
+		Name:    middlewares.JWTCookieName,
+		Value:   JWTString,
+		Expires: time.Now().Add(time.Duration(h.Conf.JWTTimeoutHours) * time.Hour),
 	}
 	http.SetCookie(w, cookie)
 
 	//return a response
 	w.WriteHeader(http.StatusOK)
-	w.Header().Set("Content-Type", "application/json")
-	w.Write([]byte(JWTString))
 }
-
-//todo: убрать жвт из тела ответа, оставить только в куках.

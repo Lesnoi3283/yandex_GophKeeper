@@ -32,18 +32,11 @@ func (s *GophKeeperServer) SaveBinData(stream grpc.ClientStreamingServer[proto.S
 	var encWriter io.WriteCloser
 	key := make([]byte, chacha20poly1305.KeySize)
 	var dataName string
-	defer encWriter.Close()
 
 	for {
 		req, err := stream.Recv()
 
 		if err == io.EOF { //file saved, return the answer.
-
-			if binary.Size(req.Chunk) > binary.Size([1]byte{})*s.maxBinDataChunkSize {
-				s.logger.Debugf("too big data chunk, expected size: %v bytes, real size: %v", s.maxBinDataChunkSize, binary.Size(req.Chunk))
-				return status.Errorf(codes.InvalidArgument, "Too big data chunk. Max chunk size is %v bytes, your size is %v bytes.", s.maxBinDataChunkSize, binary.Size(req.Chunk))
-			}
-
 			//save key
 			err = s.keyKeeper.SetBinaryDataKey(userIDStr, dataName, string(key))
 			if err != nil {
@@ -55,7 +48,6 @@ func (s *GophKeeperServer) SaveBinData(stream grpc.ClientStreamingServer[proto.S
 
 				return status.Error(codes.Internal, "Internal server error")
 			}
-
 			//success
 			break
 		}
@@ -64,14 +56,22 @@ func (s *GophKeeperServer) SaveBinData(stream grpc.ClientStreamingServer[proto.S
 			return status.Error(codes.Internal, "Internal server error")
 		}
 
+		//check size
+		if binary.Size(req.Chunk) > binary.Size([1]byte{})*s.maxBinDataChunkSize {
+			s.logger.Debugf("too big data chunk, expected size: %v bytes, real size: %v", s.maxBinDataChunkSize, binary.Size(req.Chunk))
+			return status.Errorf(codes.InvalidArgument, "Too big data chunk. Max chunk size is %v bytes, your size is %v bytes.", s.maxBinDataChunkSize, binary.Size(req.Chunk))
+		}
+
 		//create writer if it`s first chunk
-		if len(req.DataName) > 0 {
+		if len(req.DataName) > 0 && encWriter == nil {
 			dataName = req.DataName
 			encWriter, key, err = s.encryptionRWFabric.CreateNewEncryptedWriter(userIDStr, dataName)
 			if err != nil {
 				s.logger.Errorf("error while creating encrypted writer, err: %v", err)
 				return status.Error(codes.Internal, "Internal server error")
 			}
+			defer encWriter.Close()
+
 		} else if len(req.DataName) == 0 && encWriter == nil {
 			s.logger.Error("First chunk must contain DataName")
 			return status.Error(codes.InvalidArgument, "First chunk must contain DataName")

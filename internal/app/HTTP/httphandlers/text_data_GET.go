@@ -2,6 +2,9 @@ package httphandlers
 
 import (
 	"GophKeeper/internal/app/HTTP/middlewares"
+	"GophKeeper/pkg/storages/storageerrors"
+	"errors"
+	"go.uber.org/zap"
 	"io"
 	"net/http"
 	"strconv"
@@ -33,9 +36,16 @@ func (h *handlerHTTP) TextDataGet(w http.ResponseWriter, r *http.Request) {
 
 	//get encrypted text
 	encryptedText, dataID, err := h.Storage.GetText(r.Context(), userIDInt, textNameStr)
-	if err != nil {
-		h.Logger.Errorf("cannot get encryptedText")
-		h.Logger.Debugf("cannot get encryptedText, err: %v", err)
+	if errors.Is(err, storageerrors.NewErrNotExists()) {
+		h.Logger.Debugf("text not found, err: %v", err)
+		w.WriteHeader(http.StatusNotFound)
+		return
+	} else if err != nil {
+		if h.Logger.Level() != zap.DebugLevel {
+			h.Logger.Errorf("cannot get encryptedText")
+		} else {
+			h.Logger.Debugf("cannot get encryptedText, err: %v", err)
+		}
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -43,8 +53,11 @@ func (h *handlerHTTP) TextDataGet(w http.ResponseWriter, r *http.Request) {
 	//read encryption key
 	key, err := h.KeyKeeper.GetTextDataKey(strconv.Itoa(userIDInt), strconv.Itoa(dataID))
 	if err != nil {
-		h.Logger.Errorf("cant get encryption key from key storage")
-		h.Logger.Debugf("cant get encryption key from key storage, err: %v", err)
+		if h.Logger.Level() != zap.DebugLevel {
+			h.Logger.Errorf("cant get encryption key from key storage")
+		} else {
+			h.Logger.Debugf("cant get encryption key from key storage, err: %v", err)
+		}
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -52,8 +65,11 @@ func (h *handlerHTTP) TextDataGet(w http.ResponseWriter, r *http.Request) {
 	//decrypt
 	decryptedText, err := h.Encryptor.DecryptAESGCM(encryptedText, []byte(key))
 	if err != nil {
-		h.Logger.Errorf("cannot decrypt text")
-		h.Logger.Debugf("cannot decrypt text, err: %v", err)
+		if h.Logger.Level() != zap.DebugLevel {
+			h.Logger.Errorf("cannot decrypt text")
+		} else {
+			h.Logger.Debugf("cannot decrypt text, err: %v", err)
+		}
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}

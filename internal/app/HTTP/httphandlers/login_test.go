@@ -1,6 +1,7 @@
 package httphandlers
 
 import (
+	"GophKeeper/internal/app/HTTP/middlewares"
 	"GophKeeper/internal/app/entities"
 	"GophKeeper/internal/app/requiredInterfaces"
 	"GophKeeper/internal/app/requiredInterfaces/mocks"
@@ -17,10 +18,10 @@ import (
 )
 
 func Test_handlerHTTP_LogIn(t *testing.T) {
-	//set data
+	// set data
 	url := "/api/login"
 
-	//set logger
+	// set logger
 	logger := zaptest.NewLogger(t)
 	sugar := logger.Sugar()
 
@@ -36,7 +37,7 @@ func Test_handlerHTTP_LogIn(t *testing.T) {
 		name           string
 		fields         fields
 		args           args
-		expectedAnswer []byte
+		expectedCookie string
 		expectedStatus int
 	}{
 		{
@@ -61,7 +62,7 @@ func Test_handlerHTTP_LogIn(t *testing.T) {
 				w:   httptest.NewRecorder(),
 				req: httptest.NewRequest(http.MethodGet, url, bytes.NewBufferString(`{"login":"qwerty@example.ru","password":"123qwerty!"}`)),
 			},
-			expectedAnswer: []byte("some.test.jwt"),
+			expectedCookie: "some.test.jwt",
 			expectedStatus: http.StatusOK,
 		},
 		{
@@ -78,7 +79,7 @@ func Test_handlerHTTP_LogIn(t *testing.T) {
 				w:   httptest.NewRecorder(),
 				req: httptest.NewRequest(http.MethodGet, url, bytes.NewBufferString(`{"login":"qwerty@example.ru","password":"123qwerty!"}`)),
 			},
-			expectedAnswer: nil,
+			expectedCookie: "",
 			expectedStatus: http.StatusUnauthorized,
 		},
 		{
@@ -95,7 +96,7 @@ func Test_handlerHTTP_LogIn(t *testing.T) {
 				w:   httptest.NewRecorder(),
 				req: httptest.NewRequest(http.MethodGet, url, bytes.NewBufferString(`{"login":"qwerty@example.ru","password":"123qwerty!"}`)),
 			},
-			expectedAnswer: nil,
+			expectedCookie: "",
 			expectedStatus: http.StatusInternalServerError,
 		},
 		{
@@ -108,7 +109,7 @@ func Test_handlerHTTP_LogIn(t *testing.T) {
 				w:   httptest.NewRecorder(),
 				req: httptest.NewRequest(http.MethodGet, url, bytes.NewBufferString(`{}`)),
 			},
-			expectedAnswer: nil,
+			expectedCookie: "",
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
@@ -121,7 +122,7 @@ func Test_handlerHTTP_LogIn(t *testing.T) {
 				w:   httptest.NewRecorder(),
 				req: httptest.NewRequest(http.MethodGet, url, bytes.NewBufferString(`{"login":"qwerty@examp`)),
 			},
-			expectedAnswer: nil,
+			expectedCookie: "",
 			expectedStatus: http.StatusBadRequest,
 		},
 	}
@@ -131,7 +132,7 @@ func Test_handlerHTTP_LogIn(t *testing.T) {
 				Logger: sugar,
 			}
 
-			//set gomock controller
+			// set gomock controller
 			c := gomock.NewController(t)
 			if tt.fields.UserManager != nil {
 				h.UserManager = tt.fields.UserManager(c)
@@ -141,7 +142,23 @@ func Test_handlerHTTP_LogIn(t *testing.T) {
 			}
 
 			h.LogIn(tt.args.w, tt.args.req)
-			assert.Equal(t, tt.expectedAnswer, tt.expectedAnswer)
+
+			// check response status
+			assert.Equal(t, tt.expectedStatus, tt.args.w.Code)
+
+			// check JWT in cookies
+			if tt.expectedCookie != "" {
+				cookies := tt.args.w.Result().Cookies()
+				var foundCookie *http.Cookie
+				for _, cookie := range cookies {
+					if cookie.Name == middlewares.JWTCookieName {
+						foundCookie = cookie
+						break
+					}
+				}
+				assert.NotNil(t, foundCookie, "JWT cookie not found")
+				assert.Equal(t, tt.expectedCookie, foundCookie.Value)
+			}
 		})
 	}
 }

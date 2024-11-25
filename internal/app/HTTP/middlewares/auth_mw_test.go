@@ -54,7 +54,7 @@ func Test_AuthMW(t *testing.T) {
 				}(),
 				next: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 					userID := r.Context().Value(UserIDContextKey)
-					userIDInt, ok := userID.(string)
+					userIDInt, ok := userID.(int)
 					assert.True(t, ok, "userID is not an int")
 					assert.Equal(t, 1, userIDInt, "wrong userID")
 

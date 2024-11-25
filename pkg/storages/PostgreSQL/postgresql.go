@@ -1,21 +1,23 @@
 package PostgreSQL
 
 import (
-	"GophKeeper/internal/app/entities"
-	"GophKeeper/pkg/storages/storageerrors"
 	"context"
 	"database/sql"
 	"errors"
+
+	"GophKeeper/internal/app/entities"
+	"GophKeeper/pkg/storages/storageerrors"
+
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
+// PostgresDB implements the Storage interface using PostgreSQL.
 type PostgresDB struct {
 	db *sql.DB
 }
 
-// NewPostgresDB
+// NewPostgresDB initializes a new PostgresDB instance and creates tables if they do not exist.
 func NewPostgresDB(connString string) (*PostgresDB, error) {
-
 	db, err := sql.Open("pgx", connString)
 	if err != nil {
 		return nil, err
@@ -30,38 +32,32 @@ func NewPostgresDB(connString string) (*PostgresDB, error) {
 	return postgresDB, nil
 }
 
-// initTables creates tables if they are not exists.
+// initTables creates the necessary tables if they do not already exist.
 func (p *PostgresDB) initTables() error {
 	queries := []string{
 		`CREATE TABLE IF NOT EXISTS users (
-            id SERIAL PRIMARY KEY,
-            login TEXT NOT NULL UNIQUE,
-            password TEXT NOT NULL
-        )`,
+			id SERIAL PRIMARY KEY,
+			login TEXT NOT NULL UNIQUE,
+			password TEXT NOT NULL
+		)`,
 		`CREATE TABLE IF NOT EXISTS bank_cards (
-            id SERIAL PRIMARY KEY,
-            owner_id INTEGER NOT NULL REFERENCES users(id),
-            last_four_digits INTEGER NOT NULL,
-            card_data BYTEA NOT NULL
-        )`,
+			id SERIAL PRIMARY KEY,
+			owner_id INTEGER NOT NULL REFERENCES users(id),
+			last_four_digits INTEGER NOT NULL,
+			card_data TEXT NOT NULL
+		)`,
 		`CREATE TABLE IF NOT EXISTS logins_and_passwords (
-            id SERIAL PRIMARY KEY,
-            owner_id INTEGER NOT NULL REFERENCES users(id),
-            login TEXT NOT NULL,
-            password TEXT NOT NULL
-        )`,
-		`CREATE TABLE IF NOT EXISTS binary_data (
-            id SERIAL PRIMARY KEY,
-            owner_id INTEGER NOT NULL REFERENCES users(id),
-            data_name TEXT NOT NULL,
-            data BYTEA NOT NULL
-        )`,
+			id SERIAL PRIMARY KEY,
+			owner_id INTEGER NOT NULL REFERENCES users(id),
+			login TEXT NOT NULL,
+			password TEXT NOT NULL
+		)`,
 		`CREATE TABLE IF NOT EXISTS texts (
-            id SERIAL PRIMARY KEY,
-            owner_id INTEGER NOT NULL REFERENCES users(id),
-            text_name TEXT NOT NULL,
-            text_data TEXT NOT NULL
-        )`,
+			id SERIAL PRIMARY KEY,
+			owner_id INTEGER NOT NULL REFERENCES users(id),
+			text_name TEXT NOT NULL,
+			text_data TEXT NOT NULL
+		)`,
 	}
 
 	for _, query := range queries {
@@ -73,23 +69,24 @@ func (p *PostgresDB) initTables() error {
 	return nil
 }
 
-// Storage interface implementation
-
-func (p *PostgresDB) SaveBankCard(ctx context.Context, ownerID int, lastFourDigits int, cardData []byte) (int, error) {
+// SaveBankCard saves a bank card for a user and returns the inserted record's ID.
+func (p *PostgresDB) SaveBankCard(ctx context.Context, ownerID int, lastFourDigits int, cardData string) (int, error) {
 	var id int
 	query := `INSERT INTO bank_cards (owner_id, last_four_digits, card_data) VALUES ($1, $2, $3) RETURNING id`
 	err := p.db.QueryRowContext(ctx, query, ownerID, lastFourDigits, cardData).Scan(&id)
 	return id, err
 }
 
-func (p *PostgresDB) GetBankCard(ctx context.Context, ownerID int, lastFourDigits int) ([]byte, int, error) {
-	var data []byte
+// GetBankCard retrieves a bank card's data and ID based on the owner ID and last four digits.
+func (p *PostgresDB) GetBankCard(ctx context.Context, ownerID int, lastFourDigits int) (string, int, error) {
+	var data string
 	var dataID int
 	query := `SELECT id, card_data FROM bank_cards WHERE owner_id=$1 AND last_four_digits=$2`
 	err := p.db.QueryRowContext(ctx, query, ownerID, lastFourDigits).Scan(&dataID, &data)
 	return data, dataID, err
 }
 
+// SaveLoginAndPassword saves login and password credentials for a user and returns the inserted record's ID.
 func (p *PostgresDB) SaveLoginAndPassword(ctx context.Context, ownerID int, login, password string) (int, error) {
 	var id int
 	query := `INSERT INTO logins_and_passwords (owner_id, login, password) VALUES ($1, $2, $3) RETURNING id`
@@ -97,6 +94,7 @@ func (p *PostgresDB) SaveLoginAndPassword(ctx context.Context, ownerID int, logi
 	return id, err
 }
 
+// GetPasswordByLogin retrieves the password and ID associated with a specific login for a user.
 func (p *PostgresDB) GetPasswordByLogin(ctx context.Context, ownerID int, login string) (string, int, error) {
 	var password string
 	var dataID int
@@ -105,21 +103,7 @@ func (p *PostgresDB) GetPasswordByLogin(ctx context.Context, ownerID int, login 
 	return password, dataID, err
 }
 
-func (p *PostgresDB) SaveBinaryData(ctx context.Context, ownerID int, dataName string, data []byte) (int, error) {
-	var id int
-	query := `INSERT INTO binary_data (owner_id, data_name, data) VALUES ($1, $2, $3) RETURNING id`
-	err := p.db.QueryRowContext(ctx, query, ownerID, dataName, data).Scan(&id)
-	return id, err
-}
-
-func (p *PostgresDB) GetBinaryData(ctx context.Context, ownerID int, dataName string) ([]byte, int, error) {
-	var data []byte
-	var dataID int
-	query := `SELECT id, data FROM binary_data WHERE owner_id=$1 AND data_name=$2`
-	err := p.db.QueryRowContext(ctx, query, ownerID, dataName).Scan(&dataID, &data)
-	return data, dataID, err
-}
-
+// SaveText saves a text entry for a user and returns the inserted record's ID.
 func (p *PostgresDB) SaveText(ctx context.Context, ownerID int, textName, text string) (int, error) {
 	var id int
 	query := `INSERT INTO texts (owner_id, text_name, text_data) VALUES ($1, $2, $3) RETURNING id`
@@ -127,16 +111,19 @@ func (p *PostgresDB) SaveText(ctx context.Context, ownerID int, textName, text s
 	return id, err
 }
 
-func (p *PostgresDB) GetText(ctx context.Context, ownerID int, textName string) ([]byte, int, error) {
+// GetText retrieves the text data and ID based on the owner ID and text name.
+func (p *PostgresDB) GetText(ctx context.Context, ownerID int, textName string) (string, int, error) {
 	var textData string
 	var dataID int
 	query := `SELECT id, text_data FROM texts WHERE owner_id=$1 AND text_name=$2`
 	err := p.db.QueryRowContext(ctx, query, ownerID, textName).Scan(&dataID, &textData)
-	return []byte(textData), dataID, err
+	if errors.Is(err, sql.ErrNoRows) {
+		return "", 0, storageerrors.NewErrNotExists()
+	}
+	return textData, dataID, err
 }
 
-// UserManager interface implementation
-
+// CreateUser creates a new user and returns the user's ID.
 func (p *PostgresDB) CreateUser(ctx context.Context, user entities.User) (int, error) {
 	var id int
 	query := `INSERT INTO users (login, password) VALUES ($1, $2) RETURNING id`
@@ -144,6 +131,7 @@ func (p *PostgresDB) CreateUser(ctx context.Context, user entities.User) (int, e
 	return id, err
 }
 
+// AuthUser authenticates a user and returns the user's ID if successful.
 func (p *PostgresDB) AuthUser(ctx context.Context, user entities.User) (int, error) {
 	var id int
 	query := `SELECT id FROM users WHERE login=$1 AND password=$2`

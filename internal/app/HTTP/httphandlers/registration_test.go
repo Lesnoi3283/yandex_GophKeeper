@@ -1,6 +1,7 @@
 package httphandlers
 
 import (
+	"GophKeeper/internal/app/HTTP/middlewares"
 	"GophKeeper/internal/app/entities"
 	"GophKeeper/internal/app/requiredInterfaces"
 	"GophKeeper/internal/app/requiredInterfaces/mocks"
@@ -17,10 +18,10 @@ import (
 )
 
 func Test_handlerHTTP_RegisterUser(t *testing.T) {
-	//set data
+	// set data
 	url := "/api/register"
 
-	//set logger
+	// set logger
 	logger := zaptest.NewLogger(t)
 	sugar := logger.Sugar()
 
@@ -36,7 +37,7 @@ func Test_handlerHTTP_RegisterUser(t *testing.T) {
 		name           string
 		fields         fields
 		args           args
-		expectedAnswer []byte
+		expectedCookie string
 		expectedStatus int
 	}{
 		{
@@ -61,7 +62,7 @@ func Test_handlerHTTP_RegisterUser(t *testing.T) {
 				w:   httptest.NewRecorder(),
 				req: httptest.NewRequest(http.MethodPost, url, bytes.NewBufferString(`{"login":"qwerty@example.ru","password":"123qwerty!"}`)),
 			},
-			expectedAnswer: []byte("very.secret.jwt"),
+			expectedCookie: "very.secret.jwt",
 			expectedStatus: http.StatusCreated,
 		},
 		{
@@ -70,7 +71,7 @@ func Test_handlerHTTP_RegisterUser(t *testing.T) {
 				w:   httptest.NewRecorder(),
 				req: httptest.NewRequest(http.MethodPost, url, bytes.NewBufferString(`{}`)),
 			},
-			expectedAnswer: nil,
+			expectedCookie: "",
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
@@ -79,7 +80,7 @@ func Test_handlerHTTP_RegisterUser(t *testing.T) {
 				w:   httptest.NewRecorder(),
 				req: httptest.NewRequest(http.MethodPost, url, bytes.NewBufferString(`{"login":"qwerty@example.ru","password":""}`)),
 			},
-			expectedAnswer: nil,
+			expectedCookie: "",
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
@@ -88,7 +89,7 @@ func Test_handlerHTTP_RegisterUser(t *testing.T) {
 				w:   httptest.NewRecorder(),
 				req: httptest.NewRequest(http.MethodPost, url, bytes.NewBufferString(`{"login":"","password":"12345"}`)),
 			},
-			expectedAnswer: nil,
+			expectedCookie: "",
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
@@ -105,7 +106,7 @@ func Test_handlerHTTP_RegisterUser(t *testing.T) {
 				w:   httptest.NewRecorder(),
 				req: httptest.NewRequest(http.MethodPost, url, bytes.NewBufferString(`{"login":"qwerty@example.ru","password":"123qwerty!"}`)),
 			},
-			expectedAnswer: nil,
+			expectedCookie: "",
 			expectedStatus: http.StatusConflict,
 		},
 		{
@@ -122,7 +123,7 @@ func Test_handlerHTTP_RegisterUser(t *testing.T) {
 				w:   httptest.NewRecorder(),
 				req: httptest.NewRequest(http.MethodPost, url, bytes.NewBufferString(`{"login":"qwerty@example.ru","password":"123qwerty!"}`)),
 			},
-			expectedAnswer: nil,
+			expectedCookie: "",
 			expectedStatus: http.StatusInternalServerError,
 		},
 		{
@@ -143,7 +144,7 @@ func Test_handlerHTTP_RegisterUser(t *testing.T) {
 				w:   httptest.NewRecorder(),
 				req: httptest.NewRequest(http.MethodPost, url, bytes.NewBufferString(`{"login":"qwerty@example.ru","password":"123qwerty!"}`)),
 			},
-			expectedAnswer: nil,
+			expectedCookie: "",
 			expectedStatus: http.StatusInternalServerError,
 		},
 	}
@@ -153,7 +154,7 @@ func Test_handlerHTTP_RegisterUser(t *testing.T) {
 				Logger: sugar,
 			}
 
-			//set gomock controller
+			// set gomock controller
 			c := gomock.NewController(t)
 			if tt.fields.UserManager != nil {
 				h.UserManager = tt.fields.UserManager(c)
@@ -163,8 +164,23 @@ func Test_handlerHTTP_RegisterUser(t *testing.T) {
 			}
 
 			h.RegisterUser(tt.args.w, tt.args.req)
+
+			// check response status
 			assert.Equal(t, tt.expectedStatus, tt.args.w.Code)
-			assert.Equal(t, tt.expectedAnswer, tt.args.w.Body.Bytes())
+
+			// check JWT in cookies
+			if tt.expectedCookie != "" {
+				cookies := tt.args.w.Result().Cookies()
+				var foundCookie *http.Cookie
+				for _, cookie := range cookies {
+					if cookie.Name == middlewares.JWTCookieName {
+						foundCookie = cookie
+						break
+					}
+				}
+				assert.NotNil(t, foundCookie, "JWT cookie not found")
+				assert.Equal(t, tt.expectedCookie, foundCookie.Value)
+			}
 		})
 	}
 }

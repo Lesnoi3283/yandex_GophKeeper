@@ -3,7 +3,6 @@ package httphandlers
 import (
 	"GophKeeper/internal/app/HTTP/middlewares"
 	"GophKeeper/internal/app/entities"
-	"bufio"
 	"bytes"
 	"crypto/rand"
 	"encoding/gob"
@@ -71,7 +70,7 @@ func (h *handlerHTTP) BankCardSave(w http.ResponseWriter, r *http.Request) {
 
 	//Marshal to gob
 	var bankCardDataBuf bytes.Buffer
-	encoder := gob.NewEncoder(bufio.NewWriter(&bankCardDataBuf))
+	encoder := gob.NewEncoder(&bankCardDataBuf)
 	err = encoder.Encode(bankCard)
 	if err != nil {
 		if h.Logger.Level() != zap.DebugLevel {

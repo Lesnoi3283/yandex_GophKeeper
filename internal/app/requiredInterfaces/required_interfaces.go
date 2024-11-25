@@ -26,14 +26,12 @@ type KeyKeeper interface {
 // You have to encrypt it yourself.
 // DON`T STORE AN ENCRYPTION KEY HERE!!! Use KeyKeeper! Follow PCI DSS 4.0 rules.
 type Storage interface {
-	SaveBankCard(ctx context.Context, ownerID int, lastFourDigits int, cardData []byte) (id int, err error)
-	GetBankCard(ctx context.Context, ownerID int, last4Digits int) (data []byte, dataID int, err error)
+	SaveBankCard(ctx context.Context, ownerID int, lastFourDigits int, cardData string) (id int, err error)
+	GetBankCard(ctx context.Context, ownerID int, last4Digits int) (data string, dataID int, err error)
 	SaveLoginAndPassword(ctx context.Context, ownerID int, login string, password string) (id int, err error)
 	GetPasswordByLogin(ctx context.Context, ownerID int, login string) (password string, dataID int, err error)
-	SaveBinaryData(ctx context.Context, ownerID int, dataName string, data []byte) (id int, err error)
-	GetBinaryData(ctx context.Context, ownerID int, dataName string) (data []byte, dataID int, err error)
 	SaveText(ctx context.Context, ownerID int, textName string, text string) (id int, err error)
-	GetText(ctx context.Context, ownerID int, textName string) (text []byte, dataID int, err error)
+	GetText(ctx context.Context, ownerID int, textName string) (text string, dataID int, err error)
 }
 
 // UserManager controls all manipulations with user.
@@ -51,8 +49,8 @@ type JWTHelper interface {
 
 // Encryptor have to encrypt and decrypt data using AES GCM.
 type Encryptor interface {
-	EncryptAESGCM(plaintext []byte, key []byte) ([]byte, error)
-	DecryptAESGCM(ciphertext []byte, key []byte) ([]byte, error)
+	EncryptAESGCM(plaintext []byte, key []byte) (string, error)
+	DecryptAESGCM(ciphertext string, key []byte) ([]byte, error)
 }
 
 // EncryptionWriterReaderFabric is an interface to create EncryptionWriter and EncryptionReader.

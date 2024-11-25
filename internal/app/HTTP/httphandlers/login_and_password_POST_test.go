@@ -54,7 +54,7 @@ func Test_handlerHTTP_LoginAndPasswordSave(t *testing.T) {
 				},
 				Encryptor: func(c *gomock.Controller) requiredInterfaces.Encryptor {
 					e := mocks.NewMockEncryptor(c)
-					e.EXPECT().EncryptAESGCM([]byte("12345"), gomock.Any()).Return([]byte("encryptedPassword"), nil)
+					e.EXPECT().EncryptAESGCM([]byte("12345"), gomock.Any()).Return("encryptedPassword", nil)
 					return e
 				},
 			},
@@ -135,7 +135,7 @@ func Test_handlerHTTP_LoginAndPasswordSave(t *testing.T) {
 			fields: fields{
 				Encryptor: func(c *gomock.Controller) requiredInterfaces.Encryptor {
 					e := mocks.NewMockEncryptor(c)
-					e.EXPECT().EncryptAESGCM(gomock.Any(), gomock.Any()).Return(nil, fmt.Errorf("some test error"))
+					e.EXPECT().EncryptAESGCM(gomock.Any(), gomock.Any()).Return("", fmt.Errorf("some test error"))
 					return e
 				},
 			},
@@ -161,7 +161,7 @@ func Test_handlerHTTP_LoginAndPasswordSave(t *testing.T) {
 				KeyKeeper: nil,
 				Encryptor: func(c *gomock.Controller) requiredInterfaces.Encryptor {
 					e := mocks.NewMockEncryptor(c)
-					e.EXPECT().EncryptAESGCM(gomock.Any(), gomock.Any()).Return([]byte("encryptedPassword"), nil)
+					e.EXPECT().EncryptAESGCM(gomock.Any(), gomock.Any()).Return("encryptedPassword", nil)
 					return e
 				},
 			},
@@ -191,7 +191,7 @@ func Test_handlerHTTP_LoginAndPasswordSave(t *testing.T) {
 				},
 				Encryptor: func(c *gomock.Controller) requiredInterfaces.Encryptor {
 					e := mocks.NewMockEncryptor(c)
-					e.EXPECT().EncryptAESGCM(gomock.Any(), gomock.Any()).Return([]byte("encryptedPassword"), nil)
+					e.EXPECT().EncryptAESGCM(gomock.Any(), gomock.Any()).Return("encryptedPassword", nil)
 					return e
 				},
 			},

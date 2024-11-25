@@ -4,7 +4,6 @@ import (
 	"GophKeeper/internal/app/HTTP/middlewares"
 	"GophKeeper/internal/app/entities"
 	"bytes"
-	"encoding/binary"
 	"encoding/gob"
 	"encoding/json"
 	"go.uber.org/zap"
@@ -36,8 +35,12 @@ func (h *handlerHTTP) BankCardGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//todo: тут баг
-	lastFourDigitsInt := int(binary.BigEndian.Uint64(lastFourDigits))
+	lastFourDigitsInt, err := strconv.Atoi(string(lastFourDigits))
+	if err != nil {
+		h.Logger.Errorf("cannot parse last four digits, err: %s", err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
 
 	//get login and encryptedPassword
 	encryptedCardData, dataID, err := h.Storage.GetBankCard(r.Context(), userIDInt, lastFourDigitsInt)
