@@ -61,7 +61,7 @@ func Test_handlerHTTP_BankCardSave(t *testing.T) {
 			args: args{
 				w: httptest.NewRecorder(),
 				req: func() *http.Request {
-					r := httptest.NewRequest(http.MethodPost, url, bytes.NewBufferString(`{"PAN":"1234567890121234","ExpiresAt":"12/24","OwnerFirstname":"IVAN","OwnerLastname":"IVANOV"}`))
+					r := httptest.NewRequest(http.MethodPost, url, bytes.NewBufferString(`{"PAN":"1234567890121234","expires_at":"12/24","owner_firstname":"IVAN","owner_lastname":"IVANOV"}`))
 					r = r.WithContext(context.WithValue(r.Context(), middlewares.UserIDContextKey, 1))
 					return r
 				}(),
@@ -73,7 +73,7 @@ func Test_handlerHTTP_BankCardSave(t *testing.T) {
 			name: "Unauthorized request",
 			args: args{
 				w:   httptest.NewRecorder(),
-				req: httptest.NewRequest(http.MethodPost, url, bytes.NewBufferString(`{"PAN":"1234567890121234","ExpiresAt":"12/24","OwnerFirstname":"IVAN","OwnerLastname":"IVANOV"}`)),
+				req: httptest.NewRequest(http.MethodPost, url, bytes.NewBufferString(`{"PAN":"1234567890121234","expires_at":"12/24","owner_firstname":"IVAN","owner_lastname":"IVANOV"}`)),
 			},
 			expectedAnswer: nil,
 			expectedStatus: http.StatusUnauthorized,
@@ -83,7 +83,7 @@ func Test_handlerHTTP_BankCardSave(t *testing.T) {
 			args: args{
 				w: httptest.NewRecorder(),
 				req: func() *http.Request {
-					r := httptest.NewRequest(http.MethodPost, url, bytes.NewBufferString(`{"PAN":"","ExpiresAt":"12/24","OwnerFirstname":"IVAN","OwnerLastname":"IVANOV"}`))
+					r := httptest.NewRequest(http.MethodPost, url, bytes.NewBufferString(`{"PAN":"","expires_at":"12/24","owner_firstname":"IVAN","owner_lastname":"IVANOV"}`))
 					r = r.WithContext(context.WithValue(r.Context(), middlewares.UserIDContextKey, 1))
 					return r
 				}(),
@@ -96,7 +96,7 @@ func Test_handlerHTTP_BankCardSave(t *testing.T) {
 			args: args{
 				w: httptest.NewRecorder(),
 				req: func() *http.Request {
-					r := httptest.NewRequest(http.MethodPost, url, bytes.NewBufferString(`{"PAN":"1234567890121234","ExpiresAt":"","OwnerFirstname":"IVAN","OwnerLastname":"IVANOV"}`))
+					r := httptest.NewRequest(http.MethodPost, url, bytes.NewBufferString(`{"PAN":"1234567890121234","expires_at":"","owner_firstname":"IVAN","owner_lastname":"IVANOV"}`))
 					r = r.WithContext(context.WithValue(r.Context(), middlewares.UserIDContextKey, 1))
 					return r
 				}(),
@@ -109,7 +109,7 @@ func Test_handlerHTTP_BankCardSave(t *testing.T) {
 			args: args{
 				w: httptest.NewRecorder(),
 				req: func() *http.Request {
-					r := httptest.NewRequest(http.MethodPost, url, bytes.NewBufferString(`{"PAN":"1234567890121234","ExpiresAt":"12/24","OwnerFirstname":"","OwnerLastname":"IVANOV"}`))
+					r := httptest.NewRequest(http.MethodPost, url, bytes.NewBufferString(`{"PAN":"1234567890121234","expires_at":"12/24","owner_firstname":"","owner_lastname":"IVANOV"}`))
 					r = r.WithContext(context.WithValue(r.Context(), middlewares.UserIDContextKey, 1))
 					return r
 				}(),
@@ -122,7 +122,7 @@ func Test_handlerHTTP_BankCardSave(t *testing.T) {
 			args: args{
 				w: httptest.NewRecorder(),
 				req: func() *http.Request {
-					r := httptest.NewRequest(http.MethodPost, url, bytes.NewBufferString(`{"PAN":"1234567890121234","ExpiresAt":"12/24","OwnerFirstname":"IVAN","OwnerLastname":""}`))
+					r := httptest.NewRequest(http.MethodPost, url, bytes.NewBufferString(`{"PAN":"1234567890121234","expires_at":"12/24","owner_firstname":"IVAN","owner_lastname":""}`))
 					r = r.WithContext(context.WithValue(r.Context(), middlewares.UserIDContextKey, 1))
 					return r
 				}(),
@@ -168,7 +168,7 @@ func Test_handlerHTTP_BankCardSave(t *testing.T) {
 			args: args{
 				w: httptest.NewRecorder(),
 				req: func() *http.Request {
-					r := httptest.NewRequest(http.MethodPost, url, bytes.NewBufferString(`{"PAN":"1234567890121234","ExpiresAt":"12/24","OwnerFirstname":"IVAN","OwnerLastname":"IVANOV"}`))
+					r := httptest.NewRequest(http.MethodPost, url, bytes.NewBufferString(`{"PAN":"1234567890121234","expires_at":"12/24","owner_firstname":"IVAN","owner_lastname":"IVANOV"}`))
 					r = r.WithContext(context.WithValue(r.Context(), middlewares.UserIDContextKey, 1))
 					return r
 				}(),
@@ -193,7 +193,7 @@ func Test_handlerHTTP_BankCardSave(t *testing.T) {
 			args: args{
 				w: httptest.NewRecorder(),
 				req: func() *http.Request {
-					r := httptest.NewRequest(http.MethodPost, url, bytes.NewBufferString(`{"PAN":"1234567890121234","ExpiresAt":"12/24","OwnerFirstname":"IVAN","OwnerLastname":"IVANOV"}`))
+					r := httptest.NewRequest(http.MethodPost, url, bytes.NewBufferString(`{"PAN":"1234567890121234","expires_at":"12/24","owner_firstname":"IVAN","owner_lastname":"IVANOV"}`))
 					r = r.WithContext(context.WithValue(r.Context(), middlewares.UserIDContextKey, 1))
 					return r
 				}(),
@@ -223,7 +223,7 @@ func Test_handlerHTTP_BankCardSave(t *testing.T) {
 			args: args{
 				w: httptest.NewRecorder(),
 				req: func() *http.Request {
-					r := httptest.NewRequest(http.MethodPost, url, bytes.NewBufferString(`{"PAN":"1234567890121234","ExpiresAt":"12/24","OwnerFirstname":"IVAN","OwnerLastname":"IVANOV"}`))
+					r := httptest.NewRequest(http.MethodPost, url, bytes.NewBufferString(`{"PAN":"1234567890121234","expires_at":"12/24","owner_firstname":"IVAN","owner_lastname":"IVANOV"}`))
 					r = r.WithContext(context.WithValue(r.Context(), middlewares.UserIDContextKey, 1))
 					return r
 				}(),

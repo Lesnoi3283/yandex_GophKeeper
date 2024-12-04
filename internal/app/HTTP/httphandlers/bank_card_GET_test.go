@@ -78,7 +78,7 @@ func Test_handlerHTTP_BankCardGet(t *testing.T) {
 					return r
 				}(),
 			},
-			expectedAnswer: []byte(`{"PAN":"1234567890121234","ExpiresAt":"12/24","OwnerFirstname":"IVAN","OwnerLastname":"IVANOV"}`),
+			expectedAnswer: []byte(`{"PAN":"1234567890121234","expires_at":"12/24","owner_firstname":"IVAN","owner_lastname":"IVANOV"}`),
 			expectedStatus: http.StatusOK,
 		},
 		{
