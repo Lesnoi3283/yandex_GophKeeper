@@ -1,12 +1,9 @@
-# IT DOESNT WORK YET!
-# Still debugging...
-
 version: '3.3'
 
 services:
-  postgres:
+  postgresProd:
     image: postgres:15
-    container_name: postgres
+    container_name: postgresProd
     restart: always
     environment:
       POSTGRES_USER: GophKeeper_user
@@ -26,7 +23,18 @@ services:
     environment:
       VAULT_DEV_ROOT_TOKEN_ID: some_vault_root_token
       VAULT_DEV_LISTEN_ADDRESS: "0.0.0.0:8200"
-    command: "server -dev -dev-root-token-id=some_vault_root_token"
+      VAULT_ADDR: "http://127.0.0.1:8200"
+    command: >
+      /bin/sh -c "
+      vault server -dev -dev-root-token-id=some_vault_root_token &
+      sleep 5 &&
+      export VAULT_TOKEN=some_vault_root_token &&
+      vault secrets enable -path=bank_cards kv &&
+      vault secrets enable -path=login_and_password kv &&
+      vault secrets enable -path=text_data kv &&
+      vault secrets enable -path=bin_data kv &&
+      wait
+      "
     ports:
       - "8200:8200"
     volumes:
@@ -37,16 +45,15 @@ services:
   app:
     build: .
     container_name: gophKeeper_app
-#    command: ["sh", "-c", "sleep infinity"]
     restart: on-failure
     depends_on:
-      - postgres
+      - postgresProd
       - vault
     environment:
-      SERVER_ADDRESS: ${SERVER_ADDRESS:-":8080"}
-      GRPC_ADDRESS: ${GRPC_ADDRESS:-":50051"}
+      SERVER_ADDRESS: "0.0.0.0:8080"
+      GRPC_ADDRESS: "0.0.0.0:50051"
       LOG_LEVEL: "debug"
-      DATABASE_DSN: "postgres://GophKeeper_user:password123@postgres:5432/GophKeeperDB?sslmode=disable"
+      DATABASE_DSN: "postgres://GophKeeper_user:password123@postgresProd:5432/GophKeeperDB?sslmode=disable"
       JWT_SECRET_KEY: "someJwtSecret"
       JWT_TIMEOUT_HOURS: 24
       HASHI_CORP_TOKEN: "some_vault_root_token"

@@ -113,7 +113,7 @@ func main() {
 		grpcServer = buildGRPCServerNoTLS(conf.GRPCAddress, sugar, jh)
 
 		//run
-		proto.RegisterGophKeeperServiceServer(grpcServer, grpchandlers.NewGophKeeperServer(storage, hashiCorp, sugar, secure.NewEncryptionFileFabric(), 4))
+		proto.RegisterGophKeeperServiceServer(grpcServer, grpchandlers.NewGophKeeperServer(storage, hashiCorp, sugar, secure.NewEncryptionFileFabric(), conf.MaxBinDataChunkSize))
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
@@ -128,7 +128,7 @@ func main() {
 		grpcServer = buildGRPCServerWithTLS(conf.GRPCAddress, sugar, jh)
 
 		//run
-		proto.RegisterGophKeeperServiceServer(grpcServer, grpchandlers.NewGophKeeperServer(storage, hashiCorp, sugar, secure.NewEncryptionFileFabric(), 4))
+		proto.RegisterGophKeeperServiceServer(grpcServer, grpchandlers.NewGophKeeperServer(storage, hashiCorp, sugar, secure.NewEncryptionFileFabric(), conf.MaxBinDataChunkSize))
 		wg.Add(1)
 		go func() {
 			defer wg.Done()

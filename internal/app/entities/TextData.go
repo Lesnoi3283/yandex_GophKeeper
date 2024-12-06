@@ -4,6 +4,6 @@ package entities
 type TextData struct {
 	ID       int    `json:"-"`
 	OwnerID  int    `json:"-"`
-	TextName string `json:"textName"`
+	TextName string `json:"text_name"`
 	Text     string `json:"text"`
 }

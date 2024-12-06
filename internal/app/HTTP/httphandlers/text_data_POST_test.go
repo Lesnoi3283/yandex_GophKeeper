@@ -61,7 +61,7 @@ func Test_handlerHTTP_TextDataSave(t *testing.T) {
 			args: args{
 				w: httptest.NewRecorder(),
 				req: func() *http.Request {
-					r := httptest.NewRequest(http.MethodPost, url, bytes.NewBufferString(`{"textName":"SomeTextName","text":"sampleText"}`))
+					r := httptest.NewRequest(http.MethodPost, url, bytes.NewBufferString(`{"text_name":"SomeTextName","text":"sampleText"}`))
 					r = r.WithContext(context.WithValue(r.Context(), middlewares.UserIDContextKey, 1))
 					return r
 				}(),
@@ -73,7 +73,7 @@ func Test_handlerHTTP_TextDataSave(t *testing.T) {
 			name: "Unauthorized request",
 			args: args{
 				w:   httptest.NewRecorder(),
-				req: httptest.NewRequest(http.MethodPost, url, bytes.NewBufferString(`{"textName":"SomeTextName","text":"sampleText"}`)),
+				req: httptest.NewRequest(http.MethodPost, url, bytes.NewBufferString(`{"text_name":"SomeTextName","text":"sampleText"}`)),
 			},
 			expectedAnswer: nil,
 			expectedStatus: http.StatusUnauthorized,
@@ -83,7 +83,7 @@ func Test_handlerHTTP_TextDataSave(t *testing.T) {
 			args: args{
 				w: httptest.NewRecorder(),
 				req: func() *http.Request {
-					r := httptest.NewRequest(http.MethodPost, url, bytes.NewBufferString(`{"textName":"","text":"sampleText"}`))
+					r := httptest.NewRequest(http.MethodPost, url, bytes.NewBufferString(`{"text_name":"","text":"sampleText"}`))
 					r = r.WithContext(context.WithValue(r.Context(), middlewares.UserIDContextKey, 1))
 					return r
 				}(),
@@ -142,7 +142,7 @@ func Test_handlerHTTP_TextDataSave(t *testing.T) {
 			args: args{
 				w: httptest.NewRecorder(),
 				req: func() *http.Request {
-					r := httptest.NewRequest(http.MethodPost, url, bytes.NewBufferString(`{"textName":"SomeTextName","text":"sampleText"}`))
+					r := httptest.NewRequest(http.MethodPost, url, bytes.NewBufferString(`{"text_name":"SomeTextName","text":"sampleText"}`))
 					r = r.WithContext(context.WithValue(r.Context(), middlewares.UserIDContextKey, 1))
 					return r
 				}(),
@@ -167,7 +167,7 @@ func Test_handlerHTTP_TextDataSave(t *testing.T) {
 			args: args{
 				w: httptest.NewRecorder(),
 				req: func() *http.Request {
-					r := httptest.NewRequest(http.MethodPost, url, bytes.NewBufferString(`{"textName":"SomeTextName","text":"sampleText"}`))
+					r := httptest.NewRequest(http.MethodPost, url, bytes.NewBufferString(`{"text_name":"SomeTextName","text":"sampleText"}`))
 					r = r.WithContext(context.WithValue(r.Context(), middlewares.UserIDContextKey, 1))
 					return r
 				}(),
@@ -197,7 +197,7 @@ func Test_handlerHTTP_TextDataSave(t *testing.T) {
 			args: args{
 				w: httptest.NewRecorder(),
 				req: func() *http.Request {
-					r := httptest.NewRequest(http.MethodPost, url, bytes.NewBufferString(`{"textName":"SomeTextName","text":"sampleText"}`))
+					r := httptest.NewRequest(http.MethodPost, url, bytes.NewBufferString(`{"text_name":"SomeTextName","text":"sampleText"}`))
 					r = r.WithContext(context.WithValue(r.Context(), middlewares.UserIDContextKey, 1))
 					return r
 				}(),
