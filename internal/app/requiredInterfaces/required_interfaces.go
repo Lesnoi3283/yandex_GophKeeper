@@ -56,6 +56,6 @@ type Encryptor interface {
 // EncryptionWriterReaderFabric is an interface to create EncryptionWriter and EncryptionReader.
 // Returns writer and encryption key.
 type EncryptionWriterReaderFabric interface {
-	CreateNewEncryptedWriter(userID string, dataName string) (writer io.WriteCloser, key []byte, err error)
+	CreateNewEncryptedWriter(userID string, dataName string, key []byte) (writer io.WriteCloser, err error)
 	CreateNewEncryptedReader(userID string, dataName string, key []byte) (io.ReadCloser, error)
 }

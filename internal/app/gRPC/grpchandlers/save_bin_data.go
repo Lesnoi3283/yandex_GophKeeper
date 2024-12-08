@@ -3,6 +3,7 @@ package grpchandlers
 import (
 	"GophKeeper/internal/app/gRPC/interceptors"
 	"GophKeeper/internal/app/gRPC/proto"
+	"crypto/rand"
 	"encoding/binary"
 	"github.com/golang/protobuf/ptypes/empty"
 	"go.uber.org/zap"
@@ -65,7 +66,13 @@ func (s *GophKeeperServer) SaveBinData(stream grpc.ClientStreamingServer[proto.S
 		//create writer if it`s first chunk
 		if len(req.DataName) > 0 && encWriter == nil {
 			dataName = req.DataName
-			encWriter, key, err = s.encryptionRWFabric.CreateNewEncryptedWriter(userIDStr, dataName)
+			key = make([]byte, chacha20poly1305.KeySize)
+			_, err = rand.Read(key)
+			if err != nil {
+				s.logger.Errorf("cant generate a random key")
+				return status.Error(codes.Internal, "Internal server error")
+			}
+			encWriter, err = s.encryptionRWFabric.CreateNewEncryptedWriter(userIDStr, dataName, key)
 			if err != nil {
 				s.logger.Errorf("error while creating encrypted writer, err: %v", err)
 				return status.Error(codes.Internal, "Internal server error")
