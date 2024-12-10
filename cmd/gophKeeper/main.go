@@ -2,7 +2,7 @@ package main
 
 import (
 	"GophKeeper/config"
-	"GophKeeper/internal/app/HTTP/httphandlers"
+	"GophKeeper/internal/app/HTTP/handlers"
 	"GophKeeper/internal/app/gRPC/grpchandlers"
 	"GophKeeper/internal/app/gRPC/interceptors"
 	"GophKeeper/internal/app/gRPC/proto"
@@ -63,7 +63,7 @@ func main() {
 	encryptor := secure.NewEncryptorAESGCM()
 
 	//build HTTP router
-	r := httphandlers.NewChiRouter(sugar, storage, jh, storage, hashiCorp, encryptor, conf)
+	r := handlers.NewChiRouter(sugar, storage, jh, storage, hashiCorp, encryptor, conf)
 
 	//prepare waitGroup
 	wg := sync.WaitGroup{}

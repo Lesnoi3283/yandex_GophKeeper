@@ -1,23 +1,26 @@
-package httphandlers
+package handlers
 
 import (
 	"GophKeeper/internal/app/HTTP/middlewares"
+	"GophKeeper/internal/app/entities"
 	"GophKeeper/internal/app/requiredInterfaces"
 	"GophKeeper/internal/app/requiredInterfaces/mocks"
 	"bytes"
 	"context"
+	"encoding/gob"
 	"fmt"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 )
 
-func Test_handlerHTTP_TextDataSave(t *testing.T) {
+func Test_handlerHTTP_BankCardGet(t *testing.T) {
 	//set data
-	url := "/api/text-data"
+	url := "/api/bank-card"
 
 	//set logger
 	logger := zaptest.NewLogger(t)
@@ -44,68 +47,51 @@ func Test_handlerHTTP_TextDataSave(t *testing.T) {
 			fields: fields{
 				Storage: func(c *gomock.Controller) requiredInterfaces.Storage {
 					st := mocks.NewMockStorage(c)
-					st.EXPECT().SaveText(gomock.Any(), 1, "SomeTextName", "encryptedText").Return(100, nil)
+					st.EXPECT().GetBankCard(gomock.Any(), 1, 1234).Return("encryptedCardData", 100, nil)
 					return st
 				},
 				KeyKeeper: func(c *gomock.Controller) requiredInterfaces.KeyKeeper {
 					kk := mocks.NewMockKeyKeeper(c)
-					kk.EXPECT().SetTextDataKey("1", "100", gomock.Any()).Return(nil)
+					kk.EXPECT().GetBankCardKey("1", "100").Return("encryptionKey", nil)
 					return kk
 				},
 				Encryptor: func(c *gomock.Controller) requiredInterfaces.Encryptor {
 					en := mocks.NewMockEncryptor(c)
-					en.EXPECT().EncryptAESGCM(gomock.Any(), gomock.Any()).Return("encryptedText", nil)
+					buf := bytes.NewBuffer(nil)
+					encoder := gob.NewEncoder(buf)
+					err := encoder.Encode(entities.BankCard{
+						PAN:            "1234567890121234",
+						ExpiresAt:      "12/24",
+						OwnerLastname:  "IVANOV",
+						OwnerFirstname: "IVAN",
+					})
+					require.NoError(t, err, "error while preparing tests. Cant encode a bank card data")
+					en.EXPECT().DecryptAESGCM("encryptedCardData", []byte("encryptionKey")).Return(buf.Bytes(), nil)
 					return en
 				},
 			},
 			args: args{
 				w: httptest.NewRecorder(),
 				req: func() *http.Request {
-					r := httptest.NewRequest(http.MethodPost, url, bytes.NewBufferString(`{"text_name":"SomeTextName","text":"sampleText"}`))
+					r := httptest.NewRequest(http.MethodPost, url, bytes.NewReader([]byte(`1234`)))
 					r = r.WithContext(context.WithValue(r.Context(), middlewares.UserIDContextKey, 1))
 					return r
 				}(),
 			},
-			expectedAnswer: nil,
-			expectedStatus: http.StatusCreated,
+			expectedAnswer: []byte(`{"PAN":"1234567890121234","expires_at":"12/24","owner_firstname":"IVAN","owner_lastname":"IVANOV"}`),
+			expectedStatus: http.StatusOK,
 		},
 		{
 			name: "Unauthorized request",
 			args: args{
 				w:   httptest.NewRecorder(),
-				req: httptest.NewRequest(http.MethodPost, url, bytes.NewBufferString(`{"text_name":"SomeTextName","text":"sampleText"}`)),
+				req: httptest.NewRequest(http.MethodPost, url, bytes.NewBuffer([]byte{1, 2, 3, 4})),
 			},
 			expectedAnswer: nil,
 			expectedStatus: http.StatusUnauthorized,
 		},
 		{
-			name: "Empty text name",
-			args: args{
-				w: httptest.NewRecorder(),
-				req: func() *http.Request {
-					r := httptest.NewRequest(http.MethodPost, url, bytes.NewBufferString(`{"text_name":"","text":"sampleText"}`))
-					r = r.WithContext(context.WithValue(r.Context(), middlewares.UserIDContextKey, 1))
-					return r
-				}(),
-			},
-			expectedAnswer: nil,
-			expectedStatus: http.StatusBadRequest,
-		},
-		{
-			name: "Empty JSON",
-			args: args{
-				w: httptest.NewRecorder(),
-				req: func() *http.Request {
-					r := httptest.NewRequest(http.MethodPost, url, bytes.NewBufferString(`{}`))
-					r = r.WithContext(context.WithValue(r.Context(), middlewares.UserIDContextKey, 1))
-					return r
-				}(),
-			},
-			expectedAnswer: nil,
-			expectedStatus: http.StatusBadRequest,
-		},
-		{
-			name: "Empty request",
+			name: "Empty body",
 			args: args{
 				w: httptest.NewRecorder(),
 				req: func() *http.Request {
@@ -118,56 +104,18 @@ func Test_handlerHTTP_TextDataSave(t *testing.T) {
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
-			name: "Unmarshal error",
-			args: args{
-				w: httptest.NewRecorder(),
-				req: func() *http.Request {
-					r := httptest.NewRequest(http.MethodPost, url, bytes.NewBufferString(`invalid-json`))
-					r = r.WithContext(context.WithValue(r.Context(), middlewares.UserIDContextKey, 1))
-					return r
-				}(),
-			},
-			expectedAnswer: nil,
-			expectedStatus: http.StatusBadRequest,
-		},
-		{
-			name: "Encryption error",
-			fields: fields{
-				Encryptor: func(c *gomock.Controller) requiredInterfaces.Encryptor {
-					en := mocks.NewMockEncryptor(c)
-					en.EXPECT().EncryptAESGCM(gomock.Any(), gomock.Any()).Return("", fmt.Errorf("encryption error"))
-					return en
-				},
-			},
-			args: args{
-				w: httptest.NewRecorder(),
-				req: func() *http.Request {
-					r := httptest.NewRequest(http.MethodPost, url, bytes.NewBufferString(`{"text_name":"SomeTextName","text":"sampleText"}`))
-					r = r.WithContext(context.WithValue(r.Context(), middlewares.UserIDContextKey, 1))
-					return r
-				}(),
-			},
-			expectedAnswer: nil,
-			expectedStatus: http.StatusInternalServerError,
-		},
-		{
 			name: "Storage error",
 			fields: fields{
 				Storage: func(c *gomock.Controller) requiredInterfaces.Storage {
 					st := mocks.NewMockStorage(c)
-					st.EXPECT().SaveText(gomock.Any(), 1, "SomeTextName", "encryptedText").Return(0, fmt.Errorf("storage error"))
+					st.EXPECT().GetBankCard(gomock.Any(), 1, 1234).Return("", 0, fmt.Errorf("storage error"))
 					return st
-				},
-				Encryptor: func(c *gomock.Controller) requiredInterfaces.Encryptor {
-					en := mocks.NewMockEncryptor(c)
-					en.EXPECT().EncryptAESGCM(gomock.Any(), gomock.Any()).Return("encryptedText", nil)
-					return en
 				},
 			},
 			args: args{
 				w: httptest.NewRecorder(),
 				req: func() *http.Request {
-					r := httptest.NewRequest(http.MethodPost, url, bytes.NewBufferString(`{"text_name":"SomeTextName","text":"sampleText"}`))
+					r := httptest.NewRequest(http.MethodPost, url, bytes.NewReader([]byte(`1234`)))
 					r = r.WithContext(context.WithValue(r.Context(), middlewares.UserIDContextKey, 1))
 					return r
 				}(),
@@ -180,24 +128,49 @@ func Test_handlerHTTP_TextDataSave(t *testing.T) {
 			fields: fields{
 				Storage: func(c *gomock.Controller) requiredInterfaces.Storage {
 					st := mocks.NewMockStorage(c)
-					st.EXPECT().SaveText(gomock.Any(), 1, "SomeTextName", "encryptedText").Return(100, nil)
+					st.EXPECT().GetBankCard(gomock.Any(), 1, 1234).Return("encryptedCardData", 100, nil)
 					return st
 				},
 				KeyKeeper: func(c *gomock.Controller) requiredInterfaces.KeyKeeper {
 					kk := mocks.NewMockKeyKeeper(c)
-					kk.EXPECT().SetTextDataKey("1", "100", gomock.Any()).Return(fmt.Errorf("key keeper error"))
+					kk.EXPECT().GetBankCardKey("1", "100").Return("", fmt.Errorf("key keeper error"))
+					return kk
+				},
+			},
+			args: args{
+				w: httptest.NewRecorder(),
+				req: func() *http.Request {
+					r := httptest.NewRequest(http.MethodPost, url, bytes.NewReader([]byte(`1234`)))
+					r = r.WithContext(context.WithValue(r.Context(), middlewares.UserIDContextKey, 1))
+					return r
+				}(),
+			},
+			expectedAnswer: nil,
+			expectedStatus: http.StatusInternalServerError,
+		},
+		{
+			name: "Decryption error",
+			fields: fields{
+				Storage: func(c *gomock.Controller) requiredInterfaces.Storage {
+					st := mocks.NewMockStorage(c)
+					st.EXPECT().GetBankCard(gomock.Any(), 1, 1234).Return("encryptedCardData", 100, nil)
+					return st
+				},
+				KeyKeeper: func(c *gomock.Controller) requiredInterfaces.KeyKeeper {
+					kk := mocks.NewMockKeyKeeper(c)
+					kk.EXPECT().GetBankCardKey("1", "100").Return("encryptionKey", nil)
 					return kk
 				},
 				Encryptor: func(c *gomock.Controller) requiredInterfaces.Encryptor {
 					en := mocks.NewMockEncryptor(c)
-					en.EXPECT().EncryptAESGCM(gomock.Any(), gomock.Any()).Return("encryptedText", nil)
+					en.EXPECT().DecryptAESGCM("encryptedCardData", []byte("encryptionKey")).Return(nil, fmt.Errorf("decryption error"))
 					return en
 				},
 			},
 			args: args{
 				w: httptest.NewRecorder(),
 				req: func() *http.Request {
-					r := httptest.NewRequest(http.MethodPost, url, bytes.NewBufferString(`{"text_name":"SomeTextName","text":"sampleText"}`))
+					r := httptest.NewRequest(http.MethodPost, url, bytes.NewReader([]byte(`1234`)))
 					r = r.WithContext(context.WithValue(r.Context(), middlewares.UserIDContextKey, 1))
 					return r
 				}(),
@@ -224,9 +197,11 @@ func Test_handlerHTTP_TextDataSave(t *testing.T) {
 				h.Encryptor = tt.fields.Encryptor(c)
 			}
 
-			h.SaveText(tt.args.w, tt.args.req)
+			h.BankCardGet(tt.args.w, tt.args.req)
 			assert.Equal(t, tt.expectedStatus, tt.args.w.Code)
-			assert.Equal(t, tt.expectedAnswer, tt.args.w.Body.Bytes())
+			if tt.expectedAnswer != nil {
+				assert.JSONEq(t, string(tt.expectedAnswer), tt.args.w.Body.String())
+			}
 		})
 	}
 }

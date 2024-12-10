@@ -1,4 +1,4 @@
-package httphandlers
+package handlers
 
 import (
 	"GophKeeper/config"

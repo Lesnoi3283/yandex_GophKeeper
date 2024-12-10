@@ -1,4 +1,4 @@
-package httphandlers
+package handlers
 
 import (
 	"GophKeeper/internal/app/HTTP/middlewares"
@@ -11,7 +11,7 @@ import (
 	"strconv"
 )
 
-func (h *handlerHTTP) LoginAndPasswordSave(w http.ResponseWriter, r *http.Request) {
+func (h *handlerHTTP) SaveText(w http.ResponseWriter, r *http.Request) {
 	//get userID from ctx
 	userID := r.Context().Value(middlewares.UserIDContextKey)
 	userIDInt, ok := userID.(int)
@@ -28,23 +28,20 @@ func (h *handlerHTTP) LoginAndPasswordSave(w http.ResponseWriter, r *http.Reques
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 
-	loginAndPassword := entities.LoginAndPassword{}
-	err = json.Unmarshal(bodyBytes, &loginAndPassword)
+	textData := entities.TextData{}
+	err = json.Unmarshal(bodyBytes, &textData)
 	if err != nil {
 		h.Logger.Warnf("cannot unmarshal body: %s", err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	if len(loginAndPassword.Login) == 0 {
-		h.Logger.Debug("login is empty")
+	textData.OwnerID = userIDInt
+	if len(textData.TextName) == 0 {
+		h.Logger.Debug("text name is empty")
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	if len(loginAndPassword.Password) == 0 {
-		h.Logger.Debug("password is empty")
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
+	//saving empty text should be possible. If user wants - why not?
 
 	//gen key
 	key := make([]byte, 32)
@@ -56,26 +53,26 @@ func (h *handlerHTTP) LoginAndPasswordSave(w http.ResponseWriter, r *http.Reques
 	}
 
 	//encrypt
-	encryptedData, err := h.Encryptor.EncryptAESGCM([]byte(loginAndPassword.Password), key)
+	encryptedData, err := h.Encryptor.EncryptAESGCM([]byte(textData.Text), key)
 	if err != nil {
-		easylog.SecureErrLog("cant encrypt login and password", err, h.Logger)
+		easylog.SecureErrLog("cant encrypt data", err, h.Logger)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	loginAndPassword.Password = string(encryptedData)
+	textData.Text = string(encryptedData)
 
 	//save data
-	dataID, err := h.Storage.SaveLoginAndPassword(r.Context(), userIDInt, loginAndPassword.Login, loginAndPassword.Password)
+	dataID, err := h.Storage.SaveText(r.Context(), userIDInt, textData.TextName, textData.Text)
 	if err != nil {
-		easylog.SecureErrLog("cant save login and password", err, h.Logger)
+		easylog.SecureErrLog("cant save text data", err, h.Logger)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	//save key
-	err = h.KeyKeeper.SetLoginAndPasswordKey(strconv.Itoa(userIDInt), strconv.Itoa(dataID), string(key))
+	err = h.KeyKeeper.SetTextDataKey(strconv.Itoa(userIDInt), strconv.Itoa(dataID), string(key))
 	if err != nil {
-		easylog.SecureErrLog("cant save login and password key", err, h.Logger)
+		easylog.SecureErrLog("cant save key", err, h.Logger)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}

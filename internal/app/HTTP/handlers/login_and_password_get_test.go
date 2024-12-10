@@ -1,4 +1,4 @@
-package httphandlers
+package handlers
 
 import (
 	"GophKeeper/internal/app/HTTP/middlewares"
@@ -15,9 +15,9 @@ import (
 	"testing"
 )
 
-func Test_handlerHTTP_LoginAndPasswordSave(t *testing.T) {
+func Test_handlerHTTP_PasswordGet(t *testing.T) {
 	//set data
-	url := "/api/login-password"
+	url := "/api/password"
 
 	//set logger
 	logger := zaptest.NewLogger(t)
@@ -44,36 +44,36 @@ func Test_handlerHTTP_LoginAndPasswordSave(t *testing.T) {
 			fields: fields{
 				Storage: func(c *gomock.Controller) requiredInterfaces.Storage {
 					st := mocks.NewMockStorage(c)
-					st.EXPECT().SaveLoginAndPassword(gomock.Any(), 1, "example", "encryptedPassword").Return(100, nil)
+					st.EXPECT().GetPasswordByLogin(gomock.Any(), 1, "example").Return("encryptedPassword", 100, nil)
 					return st
 				},
 				KeyKeeper: func(c *gomock.Controller) requiredInterfaces.KeyKeeper {
 					kk := mocks.NewMockKeyKeeper(c)
-					kk.EXPECT().SetLoginAndPasswordKey("1", "100", gomock.Any()).Return(nil)
+					kk.EXPECT().GetLoginAndPasswordKey("1", "100").Return("encryptionKey", nil)
 					return kk
 				},
 				Encryptor: func(c *gomock.Controller) requiredInterfaces.Encryptor {
 					e := mocks.NewMockEncryptor(c)
-					e.EXPECT().EncryptAESGCM([]byte("12345"), gomock.Any()).Return("encryptedPassword", nil)
+					e.EXPECT().DecryptAESGCM("encryptedPassword", []byte("encryptionKey")).Return([]byte("decryptedPassword"), nil)
 					return e
 				},
 			},
 			args: args{
 				w: httptest.NewRecorder(),
 				req: func() *http.Request {
-					r := httptest.NewRequest(http.MethodPost, url, bytes.NewBufferString(`{"login":"example","password":"12345"}`))
+					r := httptest.NewRequest(http.MethodPost, url, bytes.NewBufferString("example"))
 					r = r.WithContext(context.WithValue(r.Context(), middlewares.UserIDContextKey, 1))
 					return r
 				}(),
 			},
-			expectedAnswer: nil,
-			expectedStatus: http.StatusCreated,
+			expectedAnswer: []byte("decryptedPassword"),
+			expectedStatus: http.StatusOK,
 		},
 		{
 			name: "Unauthorized request",
 			args: args{
 				w:   httptest.NewRecorder(),
-				req: httptest.NewRequest(http.MethodPost, url, bytes.NewBufferString(`{"login":"example","password":"12345"}`)),
+				req: httptest.NewRequest(http.MethodPost, url, bytes.NewBufferString("example")),
 			},
 			expectedAnswer: nil,
 			expectedStatus: http.StatusUnauthorized,
@@ -83,92 +83,28 @@ func Test_handlerHTTP_LoginAndPasswordSave(t *testing.T) {
 			args: args{
 				w: httptest.NewRecorder(),
 				req: func() *http.Request {
-					r := httptest.NewRequest(http.MethodPost, url, bytes.NewBufferString(`{"login":"","password":"12345"}`))
+					r := httptest.NewRequest(http.MethodPost, url, bytes.NewBufferString(""))
 					r = r.WithContext(context.WithValue(r.Context(), middlewares.UserIDContextKey, 1))
 					return r
 				}(),
 			},
 			expectedAnswer: nil,
 			expectedStatus: http.StatusBadRequest,
-		},
-		{
-			name: "Empty password",
-			args: args{
-				w: httptest.NewRecorder(),
-				req: func() *http.Request {
-					r := httptest.NewRequest(http.MethodPost, url, bytes.NewBufferString(`{"login":"example","password":""}`))
-					r = r.WithContext(context.WithValue(r.Context(), middlewares.UserIDContextKey, 1))
-					return r
-				}(),
-			},
-			expectedAnswer: nil,
-			expectedStatus: http.StatusBadRequest,
-		},
-		{
-			name: "Empty JSON",
-			args: args{
-				w: httptest.NewRecorder(),
-				req: func() *http.Request {
-					r := httptest.NewRequest(http.MethodPost, url, bytes.NewBufferString(`{}`))
-					r = r.WithContext(context.WithValue(r.Context(), middlewares.UserIDContextKey, 1))
-					return r
-				}(),
-			},
-			expectedAnswer: nil,
-			expectedStatus: http.StatusBadRequest,
-		},
-		{
-			name: "Empty body",
-			args: args{
-				w: httptest.NewRecorder(),
-				req: func() *http.Request {
-					r := httptest.NewRequest(http.MethodPost, url, nil)
-					r = r.WithContext(context.WithValue(r.Context(), middlewares.UserIDContextKey, 1))
-					return r
-				}(),
-			},
-			expectedAnswer: nil,
-			expectedStatus: http.StatusBadRequest,
-		},
-		{
-			name: "Encryptor error",
-			fields: fields{
-				Encryptor: func(c *gomock.Controller) requiredInterfaces.Encryptor {
-					e := mocks.NewMockEncryptor(c)
-					e.EXPECT().EncryptAESGCM(gomock.Any(), gomock.Any()).Return("", fmt.Errorf("some test error"))
-					return e
-				},
-			},
-			args: args{
-				w: httptest.NewRecorder(),
-				req: func() *http.Request {
-					r := httptest.NewRequest(http.MethodPost, url, bytes.NewBufferString(`{"login":"example","password":"12345"}`))
-					r = r.WithContext(context.WithValue(r.Context(), middlewares.UserIDContextKey, 1))
-					return r
-				}(),
-			},
-			expectedAnswer: nil,
-			expectedStatus: http.StatusInternalServerError,
 		},
 		{
 			name: "Storage error",
 			fields: fields{
 				Storage: func(c *gomock.Controller) requiredInterfaces.Storage {
 					st := mocks.NewMockStorage(c)
-					st.EXPECT().SaveLoginAndPassword(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(0, fmt.Errorf("some test storage error"))
+					st.EXPECT().GetPasswordByLogin(gomock.Any(), 1, "example").Return("", 0, fmt.Errorf("some storage error"))
 					return st
 				},
 				KeyKeeper: nil,
-				Encryptor: func(c *gomock.Controller) requiredInterfaces.Encryptor {
-					e := mocks.NewMockEncryptor(c)
-					e.EXPECT().EncryptAESGCM(gomock.Any(), gomock.Any()).Return("encryptedPassword", nil)
-					return e
-				},
 			},
 			args: args{
 				w: httptest.NewRecorder(),
 				req: func() *http.Request {
-					r := httptest.NewRequest(http.MethodPost, url, bytes.NewBufferString(`{"login":"example","password":"12345"}`))
+					r := httptest.NewRequest(http.MethodPost, url, bytes.NewBufferString("example"))
 					r = r.WithContext(context.WithValue(r.Context(), middlewares.UserIDContextKey, 1))
 					return r
 				}(),
@@ -181,27 +117,53 @@ func Test_handlerHTTP_LoginAndPasswordSave(t *testing.T) {
 			fields: fields{
 				Storage: func(c *gomock.Controller) requiredInterfaces.Storage {
 					st := mocks.NewMockStorage(c)
-					st.EXPECT().SaveLoginAndPassword(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(100, nil)
+					st.EXPECT().GetPasswordByLogin(gomock.Any(), 1, "example").Return("encryptedPassword", 100, nil)
 					return st
 				},
 				KeyKeeper: func(c *gomock.Controller) requiredInterfaces.KeyKeeper {
 					kk := mocks.NewMockKeyKeeper(c)
-					kk.EXPECT().SetLoginAndPasswordKey(gomock.Any(), gomock.Any(), gomock.Any()).Return(fmt.Errorf("some keykeeper error"))
+					kk.EXPECT().GetLoginAndPasswordKey("1", "100").Return("", fmt.Errorf("key keeper error"))
+					return kk
+				},
+			},
+			args: args{
+				w: httptest.NewRecorder(),
+				req: func() *http.Request {
+					r := httptest.NewRequest(http.MethodPost, url, bytes.NewBufferString("example"))
+					r = r.WithContext(context.WithValue(r.Context(), middlewares.UserIDContextKey, 1))
+					return r
+				}(),
+			},
+			expectedAnswer: nil,
+			expectedStatus: http.StatusInternalServerError,
+		},
+		{
+			name: "Decryption error",
+			fields: fields{
+				Storage: func(c *gomock.Controller) requiredInterfaces.Storage {
+					st := mocks.NewMockStorage(c)
+					st.EXPECT().GetPasswordByLogin(gomock.Any(), 1, "example").Return("encryptedPassword", 100, nil)
+					return st
+				},
+				KeyKeeper: func(c *gomock.Controller) requiredInterfaces.KeyKeeper {
+					kk := mocks.NewMockKeyKeeper(c)
+					kk.EXPECT().GetLoginAndPasswordKey("1", "100").Return("encryptionKey", nil)
 					return kk
 				},
 				Encryptor: func(c *gomock.Controller) requiredInterfaces.Encryptor {
 					e := mocks.NewMockEncryptor(c)
-					e.EXPECT().EncryptAESGCM(gomock.Any(), gomock.Any()).Return("encryptedPassword", nil)
+					e.EXPECT().DecryptAESGCM(gomock.Any(), gomock.Any()).Return(nil, fmt.Errorf("some test error"))
 					return e
 				},
 			},
 			args: args{
 				w: httptest.NewRecorder(),
 				req: func() *http.Request {
-					r := httptest.NewRequest(http.MethodPost, url, bytes.NewBufferString(`{"login":"example","password":"12345"}`))
+					r := httptest.NewRequest(http.MethodPost, url, bytes.NewBufferString("example"))
 					r = r.WithContext(context.WithValue(r.Context(), middlewares.UserIDContextKey, 1))
 					return r
-				}()},
+				}(),
+			},
 			expectedAnswer: nil,
 			expectedStatus: http.StatusInternalServerError,
 		},
@@ -224,7 +186,7 @@ func Test_handlerHTTP_LoginAndPasswordSave(t *testing.T) {
 				h.Encryptor = tt.fields.Encryptor(c)
 			}
 
-			h.LoginAndPasswordSave(tt.args.w, tt.args.req)
+			h.PasswordGet(tt.args.w, tt.args.req)
 			assert.Equal(t, tt.expectedStatus, tt.args.w.Code)
 			assert.Equal(t, tt.expectedAnswer, tt.args.w.Body.Bytes())
 		})
