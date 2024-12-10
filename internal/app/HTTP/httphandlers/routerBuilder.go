@@ -37,11 +37,12 @@ func NewChiRouter(logger *zap.SugaredLogger, um requiredInterfaces.UserManager,
 	r := chi.NewRouter()
 
 	//set middlewares
-	r.Use(middlewares.GetAuthMW(logger, jh))
+	excludedPath := []string{"/api/register", "/api/login"}
+	r.Use(middlewares.GetAuthMW(logger, jh, excludedPath))
 
 	//set handlers
 	r.Post("/api/register", httphandler.RegisterUser)
-	r.Get("/api/login", httphandler.LogIn)
+	r.Get("/api/login", httphandler.Login)
 	r.Post("/api/bankcard", httphandler.BankCardSave)
 	r.Get("/api/bankcard", httphandler.BankCardGet)
 	r.Post("/api/loginandpassword", httphandler.LoginAndPasswordSave)

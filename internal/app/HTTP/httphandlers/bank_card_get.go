@@ -3,10 +3,12 @@ package httphandlers
 import (
 	"GophKeeper/internal/app/HTTP/middlewares"
 	"GophKeeper/internal/app/entities"
+	"GophKeeper/internal/app/requiredInterfaces"
+	"GophKeeper/pkg/easylog"
 	"bytes"
 	"encoding/gob"
 	"encoding/json"
-	"go.uber.org/zap"
+	"fmt"
 	"io"
 	"net/http"
 	"strconv"
@@ -42,38 +44,17 @@ func (h *handlerHTTP) BankCardGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//get login and encryptedPassword
+	//get encrypted data
 	encryptedCardData, dataID, err := h.Storage.GetBankCard(r.Context(), userIDInt, lastFourDigitsInt)
 	if err != nil {
-		if h.Logger.Level() != zap.DebugLevel {
-			h.Logger.Errorf("cannot get encrypted card data")
-		} else {
-			h.Logger.Debugf("cannot get encrypted card data, err: %v", err)
-		}
+		easylog.SecureErrLog("cannot get encrypted bank card", err, h.Logger)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	//read encryption key
-	key, err := h.KeyKeeper.GetBankCardKey(strconv.Itoa(userIDInt), strconv.Itoa(dataID))
+	bankCardBytes, err := decryptCard(encryptedCardData, userIDInt, dataID, h.KeyKeeper, h.Encryptor)
 	if err != nil {
-		if h.Logger.Level() != zap.DebugLevel {
-			h.Logger.Errorf("cant get encryption key from key storage")
-		} else {
-			h.Logger.Debugf("cant get encryption key from key storage, err: %v", err)
-		}
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	//decrypt
-	bankCardBytes, err := h.Encryptor.DecryptAESGCM(encryptedCardData, []byte(key))
-	if err != nil {
-		if h.Logger.Level() != zap.DebugLevel {
-			h.Logger.Errorf("cannot decrypt password")
-		} else {
-			h.Logger.Debugf("cannot decrypt password, err: %v", err)
-		}
+		easylog.SecureErrLog("cannot decrypt card data", err, h.Logger)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -84,11 +65,7 @@ func (h *handlerHTTP) BankCardGet(w http.ResponseWriter, r *http.Request) {
 	bankCard := &entities.BankCard{}
 	err = decoder.Decode(bankCard)
 	if err != nil {
-		if h.Logger.Level() != zap.DebugLevel {
-			h.Logger.Errorf("cannot decode bank card")
-		} else {
-			h.Logger.Debugf("cannot decode bank card, err: %v", err)
-		}
+		easylog.SecureErrLog("cannot decode bank card", err, h.Logger)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -96,11 +73,7 @@ func (h *handlerHTTP) BankCardGet(w http.ResponseWriter, r *http.Request) {
 	//decode to JSON
 	bankCardJSON, err := json.Marshal(bankCard)
 	if err != nil {
-		if h.Logger.Level() != zap.DebugLevel {
-			h.Logger.Errorf("cannot marshal bank card")
-		} else {
-			h.Logger.Debugf("cannot marshal bank card, err: %v", err)
-		}
+		easylog.SecureErrLog("cannot marshal bank card", err, h.Logger)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -109,4 +82,19 @@ func (h *handlerHTTP) BankCardGet(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(bankCardJSON)
+}
+
+func decryptCard(encryptedCardData string, userID int, dataID int, keyKeeper requiredInterfaces.KeyKeeper, encryptor requiredInterfaces.Encryptor) ([]byte, error) {
+	//read encryption key
+	key, err := keyKeeper.GetBankCardKey(strconv.Itoa(userID), strconv.Itoa(dataID))
+	if err != nil {
+		return nil, fmt.Errorf("cant get bank card key: %w", err)
+	}
+
+	//decrypt
+	bankCardBytes, err := encryptor.DecryptAESGCM(encryptedCardData, []byte(key))
+	if err != nil {
+		return nil, fmt.Errorf("cant decrypt card: %w", err)
+	}
+	return bankCardBytes, nil
 }

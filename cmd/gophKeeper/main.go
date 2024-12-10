@@ -7,8 +7,8 @@ import (
 	"GophKeeper/internal/app/gRPC/interceptors"
 	"GophKeeper/internal/app/gRPC/proto"
 	"GophKeeper/pkg/secure"
-	"GophKeeper/pkg/storages/HashiCorpVault"
-	"GophKeeper/pkg/storages/PostgreSQL"
+	"GophKeeper/pkg/storages/hashiCorpVault"
+	"GophKeeper/pkg/storages/postgreSQL"
 	"crypto/tls"
 	"github.com/go-chi/chi"
 	"go.uber.org/zap"
@@ -45,13 +45,13 @@ func main() {
 	defer sugar.Sync()
 
 	//prepare storage
-	storage, err := PostgreSQL.NewPostgresDB(conf.DBConnString)
+	storage, err := postgreSQL.NewPostgresDB(conf.DBConnString)
 	if err != nil {
 		sugar.Fatalf("cant create postgresql storage, err: %v", err)
 	}
 
 	//prepare keykeeper
-	hashiCorp, err := HashiCorpVault.NewHashiCorpVault(conf.HashiCorpAddress, conf.HashiCorpToken)
+	hashiCorp, err := hashiCorpVault.NewHashiCorpVault(conf.HashiCorpAddress, conf.HashiCorpToken)
 	if err != nil {
 		sugar.Fatalf("cant create hashi corp vault, err: %v", err)
 	}

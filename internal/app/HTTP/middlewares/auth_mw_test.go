@@ -13,6 +13,8 @@ import (
 )
 
 func Test_AuthMW(t *testing.T) {
+	excludedPath := []string{"/api/register", "/api/login"}
+
 	//prepare
 	logger := zaptest.NewLogger(t)
 	sugar := logger.Sugar()
@@ -120,7 +122,7 @@ func Test_AuthMW(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mw := GetAuthMW(sugar, tt.fields.jh)
+			mw := GetAuthMW(sugar, tt.fields.jh, excludedPath)
 			handler := mw(tt.args.next)
 			handler.ServeHTTP(tt.args.w, tt.args.r)
 			assert.Equal(t, tt.statusWant, tt.args.w.Code, "wrong status code")

@@ -466,17 +466,16 @@ func (mr *MockEncryptionWriterReaderFabricMockRecorder) CreateNewEncryptedReader
 }
 
 // CreateNewEncryptedWriter mocks base method.
-func (m *MockEncryptionWriterReaderFabric) CreateNewEncryptedWriter(userID, dataName string) (io.WriteCloser, []byte, error) {
+func (m *MockEncryptionWriterReaderFabric) CreateNewEncryptedWriter(userID, dataName string, key []byte) (io.WriteCloser, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateNewEncryptedWriter", userID, dataName)
+	ret := m.ctrl.Call(m, "CreateNewEncryptedWriter", userID, dataName, key)
 	ret0, _ := ret[0].(io.WriteCloser)
-	ret1, _ := ret[1].([]byte)
-	ret2, _ := ret[2].(error)
-	return ret0, ret1, ret2
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // CreateNewEncryptedWriter indicates an expected call of CreateNewEncryptedWriter.
-func (mr *MockEncryptionWriterReaderFabricMockRecorder) CreateNewEncryptedWriter(userID, dataName interface{}) *gomock.Call {
+func (mr *MockEncryptionWriterReaderFabricMockRecorder) CreateNewEncryptedWriter(userID, dataName, key interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateNewEncryptedWriter", reflect.TypeOf((*MockEncryptionWriterReaderFabric)(nil).CreateNewEncryptedWriter), userID, dataName)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateNewEncryptedWriter", reflect.TypeOf((*MockEncryptionWriterReaderFabric)(nil).CreateNewEncryptedWriter), userID, dataName, key)
 }

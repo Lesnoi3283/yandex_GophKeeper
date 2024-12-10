@@ -3,11 +3,11 @@ package httphandlers
 import (
 	"GophKeeper/internal/app/HTTP/middlewares"
 	"GophKeeper/internal/app/entities"
+	"GophKeeper/pkg/easylog"
 	"bytes"
 	"crypto/rand"
 	"encoding/gob"
 	"encoding/json"
-	"go.uber.org/zap"
 	"io"
 	"net/http"
 	"strconv"
@@ -73,11 +73,7 @@ func (h *handlerHTTP) BankCardSave(w http.ResponseWriter, r *http.Request) {
 	encoder := gob.NewEncoder(&bankCardDataBuf)
 	err = encoder.Encode(bankCard)
 	if err != nil {
-		if h.Logger.Level() != zap.DebugLevel {
-			h.Logger.Errorf("cannot encode bank card")
-		} else {
-			h.Logger.Debugf("cannot encode bank card, err: %v", err)
-		}
+		easylog.SecureErrLog("cannot encode bank card", err, h.Logger)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -85,11 +81,7 @@ func (h *handlerHTTP) BankCardSave(w http.ResponseWriter, r *http.Request) {
 	//encrypt
 	encryptedData, err := h.Encryptor.EncryptAESGCM(bankCardDataBuf.Bytes(), key)
 	if err != nil {
-		if h.Logger.Level() != zap.DebugLevel {
-			h.Logger.Errorf("cannot encrypt data")
-		} else {
-			h.Logger.Debugf("cannot encrypt data, err: %v", err)
-		}
+		easylog.SecureErrLog("cannot encrypt bank card", err, h.Logger)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -98,11 +90,7 @@ func (h *handlerHTTP) BankCardSave(w http.ResponseWriter, r *http.Request) {
 	lastFourDigits, err := strconv.Atoi(bankCard.PAN[len(bankCard.PAN)-4:])
 	dataID, err := h.Storage.SaveBankCard(r.Context(), userIDInt, lastFourDigits, encryptedData)
 	if err != nil {
-		if h.Logger.Level() != zap.DebugLevel {
-			h.Logger.Errorf("cannot save bank card")
-		} else {
-			h.Logger.Debugf("cannot save bank card, err: %v", err)
-		}
+		easylog.SecureErrLog("cannot save bank card", err, h.Logger)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -110,11 +98,7 @@ func (h *handlerHTTP) BankCardSave(w http.ResponseWriter, r *http.Request) {
 	//save key
 	err = h.KeyKeeper.SetBankCardKey(strconv.Itoa(userIDInt), strconv.Itoa(dataID), string(key))
 	if err != nil {
-		if h.Logger.Level() != zap.DebugLevel {
-			h.Logger.Errorf("cannot save key")
-		} else {
-			h.Logger.Debugf("cannot save key, err: %v", err)
-		}
+		easylog.SecureErrLog("cannot save bank card key", err, h.Logger)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}

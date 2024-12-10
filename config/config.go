@@ -64,7 +64,7 @@ func (c *Config) Configure() (err error) {
 	flag.StringVar(&(c.JWTSecretKey), "s", DefaultJWTSecretKey, "JWT secret key.")
 	flag.IntVar(&(c.JWTTimeoutHours), "j", DefaultJWTTimeoutHours, "JWT timeout hours.")
 	flag.StringVar(&(c.ConfigFileName), "c", "", "Config file name.")
-	flag.StringVar(&(c.HashiCorpAddress), "h", "", "HashiCorpVault address.")
+	flag.StringVar(&(c.HashiCorpAddress), "h", "", "hashiCorpVault address.")
 	flag.BoolVar(&(c.DebugMode), "u", false, "unsafe - Debug mode, no TLS.")
 	flag.IntVar(&(c.MaxBinDataChunkSize), "m", DefaultMaxBinDataChunkSize, "Max bin data chunk size.")
 	flag.Parse()

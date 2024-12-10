@@ -1,9 +1,11 @@
-package PostgreSQL
+package postgreSQL
 
 import (
+	"GophKeeper/pkg/secure"
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 
 	"GophKeeper/internal/app/entities"
 	"GophKeeper/pkg/storages/storageerrors"
@@ -11,7 +13,7 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
-// PostgresDB implements the Storage interface using PostgreSQL.
+// PostgresDB implements the Storage interface using postgreSQL.
 type PostgresDB struct {
 	db *sql.DB
 }
@@ -38,7 +40,8 @@ func (p *PostgresDB) initTables() error {
 		`CREATE TABLE IF NOT EXISTS users (
 			id SERIAL PRIMARY KEY,
 			login TEXT NOT NULL UNIQUE,
-			password TEXT NOT NULL
+			password TEXT NOT NULL,
+			password_salt TEXT NOT NULL
 		)`,
 		`CREATE TABLE IF NOT EXISTS bank_cards (
 			id SERIAL PRIMARY KEY,
@@ -124,18 +127,39 @@ func (p *PostgresDB) GetText(ctx context.Context, ownerID int, textName string) 
 }
 
 // CreateUser creates a new user and returns the user's ID.
+// It hashes password and saves its hashed version with salt.
 func (p *PostgresDB) CreateUser(ctx context.Context, user entities.User) (int, error) {
+	passwordHash, salt, err := secure.HashPassword([]byte(user.Password))
+	if err != nil {
+		return 0, fmt.Errorf("error hashing password: %w", err)
+	}
+
 	var id int
-	query := `INSERT INTO users (login, password) VALUES ($1, $2) RETURNING id`
-	err := p.db.QueryRowContext(ctx, query, user.Login, user.Password).Scan(&id)
-	return id, err
+	query := `INSERT INTO users (login, password, password_salt) VALUES ($1, $2, $3) RETURNING id`
+	err = p.db.QueryRowContext(ctx, query, user.Login, passwordHash, salt).Scan(&id)
+	if err != nil {
+		return 0, fmt.Errorf("error creating user: %w", err)
+	}
+	return id, nil
 }
 
 // AuthUser authenticates a user and returns the user's ID if successful.
 func (p *PostgresDB) AuthUser(ctx context.Context, user entities.User) (int, error) {
+	query := `SELECT password_salt FROM users WHERE login=$1`
+	var salt string
+	err := p.db.QueryRowContext(ctx, query, user.Login).Scan(&salt)
+	if errors.Is(err, sql.ErrNoRows) {
+		return 0, storageerrors.NewErrNotExists()
+	}
+
+	passwordHash, err := secure.HashPasswordWithSalt([]byte(user.Password), salt)
+	if err != nil {
+		return 0, fmt.Errorf("cant hash password, err: %w", err)
+	}
+
 	var id int
-	query := `SELECT id FROM users WHERE login=$1 AND password=$2`
-	err := p.db.QueryRowContext(ctx, query, user.Login, user.Password).Scan(&id)
+	query = `SELECT id FROM users WHERE login=$1 AND password=$2`
+	err = p.db.QueryRowContext(ctx, query, user.Login, passwordHash).Scan(&id)
 	if errors.Is(err, sql.ErrNoRows) {
 		return 0, storageerrors.NewErrNotExists()
 	}

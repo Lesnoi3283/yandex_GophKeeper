@@ -2,9 +2,9 @@ package httphandlers
 
 import (
 	"GophKeeper/internal/app/HTTP/middlewares"
+	"GophKeeper/pkg/easylog"
 	"GophKeeper/pkg/storages/storageerrors"
 	"errors"
-	"go.uber.org/zap"
 	"io"
 	"net/http"
 	"strconv"
@@ -41,11 +41,7 @@ func (h *handlerHTTP) TextDataGet(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
 		return
 	} else if err != nil {
-		if h.Logger.Level() != zap.DebugLevel {
-			h.Logger.Errorf("cannot get encryptedText")
-		} else {
-			h.Logger.Debugf("cannot get encryptedText, err: %v", err)
-		}
+		easylog.SecureErrLog("cant get encrypted text", err, h.Logger)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -53,11 +49,7 @@ func (h *handlerHTTP) TextDataGet(w http.ResponseWriter, r *http.Request) {
 	//read encryption key
 	key, err := h.KeyKeeper.GetTextDataKey(strconv.Itoa(userIDInt), strconv.Itoa(dataID))
 	if err != nil {
-		if h.Logger.Level() != zap.DebugLevel {
-			h.Logger.Errorf("cant get encryption key from key storage")
-		} else {
-			h.Logger.Debugf("cant get encryption key from key storage, err: %v", err)
-		}
+		easylog.SecureErrLog("cant get encryption key from key storage", err, h.Logger)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -65,11 +57,7 @@ func (h *handlerHTTP) TextDataGet(w http.ResponseWriter, r *http.Request) {
 	//decrypt
 	decryptedText, err := h.Encryptor.DecryptAESGCM(encryptedText, []byte(key))
 	if err != nil {
-		if h.Logger.Level() != zap.DebugLevel {
-			h.Logger.Errorf("cannot decrypt text")
-		} else {
-			h.Logger.Debugf("cannot decrypt text, err: %v", err)
-		}
+		easylog.SecureErrLog("cant decrypt text", err, h.Logger)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}

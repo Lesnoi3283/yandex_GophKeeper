@@ -3,7 +3,6 @@ package httphandlers
 import (
 	"GophKeeper/internal/app/HTTP/middlewares"
 	"GophKeeper/internal/app/entities"
-	"GophKeeper/pkg/secure"
 	"GophKeeper/pkg/storages/storageerrors"
 	"encoding/json"
 	"errors"
@@ -13,7 +12,7 @@ import (
 	"time"
 )
 
-func (h *handlerHTTP) LogIn(w http.ResponseWriter, r *http.Request) {
+func (h *handlerHTTP) Login(w http.ResponseWriter, r *http.Request) {
 	//read data
 	bytes, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -40,19 +39,7 @@ func (h *handlerHTTP) LogIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//hash password
-	user.PasswordHash, user.PasswordSalt, err = secure.HashPassword([]byte(user.Password))
-	if err != nil {
-		if h.Logger.Level() != zap.DebugLevel {
-			h.Logger.Errorf("cant hash password")
-		} else {
-			h.Logger.Debugf("cant hash password, err: %v", err)
-		}
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	//LogIn
+	//Login
 	user.ID, err = h.UserManager.AuthUser(r.Context(), user)
 	if errors.Is(err, storageerrors.NewErrNotExists()) {
 		h.Logger.Debugf("user not exists, err: %v", err)

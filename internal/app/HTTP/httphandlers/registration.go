@@ -3,7 +3,6 @@ package httphandlers
 import (
 	"GophKeeper/internal/app/HTTP/middlewares"
 	"GophKeeper/internal/app/entities"
-	"GophKeeper/pkg/secure"
 	"GophKeeper/pkg/storages/storageerrors"
 	"encoding/json"
 	"errors"
@@ -29,22 +28,16 @@ func (h *handlerHTTP) RegisterUser(w http.ResponseWriter, req *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	if len(user.Password) == 0 {
-		h.Logger.Debugf("password is empty")
+	if len(user.Password) <= 5 {
+		h.Logger.Debugf("password is too small")
 		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("password is too small"))
 		return
 	}
-	if len(user.Login) == 0 {
-		h.Logger.Debugf("login is empty")
+	if len(user.Login) <= 5 {
+		h.Logger.Debugf("login is too small")
 		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
-	//hash password
-	user.PasswordHash, user.PasswordSalt, err = secure.HashPassword([]byte(user.Password))
-	if err != nil {
-		h.Logger.Errorf("cant hash password, err: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("login is too small"))
 		return
 	}
 

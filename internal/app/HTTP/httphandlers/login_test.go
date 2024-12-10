@@ -141,7 +141,7 @@ func Test_handlerHTTP_LogIn(t *testing.T) {
 				h.JWTHelper = tt.fields.JWTHelper(c)
 			}
 
-			h.LogIn(tt.args.w, tt.args.req)
+			h.Login(tt.args.w, tt.args.req)
 
 			// check response status
 			assert.Equal(t, tt.expectedStatus, tt.args.w.Code)

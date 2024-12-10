@@ -47,7 +47,7 @@ func Test_handlerHTTP_RegisterUser(t *testing.T) {
 					um := mocks.NewMockUserManager(c)
 					um.EXPECT().CreateUser(gomock.Any(), gomock.AssignableToTypeOf(entities.User{})).DoAndReturn(func(_ context.Context, u entities.User) (int, error) {
 						assert.Equal(t, "qwerty@example.ru", u.Login)
-						assert.NotEmpty(t, u.PasswordHash, "Password hash is empty")
+						assert.Equal(t, "123qwerty!", u.Password)
 						return 1, nil
 					})
 					return um

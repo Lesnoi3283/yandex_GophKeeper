@@ -15,13 +15,10 @@ type UserIDContextKeyType string
 
 const UserIDContextKey UserIDContextKeyType = "UserID"
 
-func GetAuthMW(logger *zap.SugaredLogger, jh requiredInterfaces.JWTHelper) func(http.Handler) http.Handler {
+func GetAuthMW(logger *zap.SugaredLogger, jh requiredInterfaces.JWTHelper, excludedPaths []string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			if r.URL.Path == "/api/login" {
-				next.ServeHTTP(w, r)
-				return
-			} else if r.URL.Path == "/api/register" {
+			if isExcluded(r.URL.Path, excludedPaths) {
 				next.ServeHTTP(w, r)
 				return
 			} else {
@@ -47,4 +44,13 @@ func GetAuthMW(logger *zap.SugaredLogger, jh requiredInterfaces.JWTHelper) func(
 			}
 		})
 	}
+}
+
+func isExcluded(path string, excludedPaths []string) bool {
+	for _, excludedPath := range excludedPaths {
+		if excludedPath == path {
+			return true
+		}
+	}
+	return false
 }
