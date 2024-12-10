@@ -3,9 +3,9 @@ package handlers
 import (
 	"GophKeeper/internal/app/HTTP/middlewares"
 	"GophKeeper/internal/app/entities"
-	"GophKeeper/internal/app/requiredInterfaces"
-	"GophKeeper/internal/app/requiredInterfaces/mocks"
-	"GophKeeper/pkg/storages/storageerrors"
+	"GophKeeper/internal/app/required_interfaces"
+	"GophKeeper/internal/app/required_interfaces/mocks"
+	"GophKeeper/pkg/storages/storage_errors"
 	"bytes"
 	"context"
 	"fmt"
@@ -26,8 +26,8 @@ func Test_handlerHTTP_LogIn(t *testing.T) {
 	sugar := logger.Sugar()
 
 	type fields struct {
-		UserManager func(c *gomock.Controller) requiredInterfaces.UserManager
-		JWTHelper   func(c *gomock.Controller) requiredInterfaces.JWTHelper
+		UserManager func(c *gomock.Controller) required_interfaces.UserManager
+		JWTHelper   func(c *gomock.Controller) required_interfaces.JWTHelper
 	}
 	type args struct {
 		w   *httptest.ResponseRecorder
@@ -43,7 +43,7 @@ func Test_handlerHTTP_LogIn(t *testing.T) {
 		{
 			name: "ok",
 			fields: fields{
-				UserManager: func(c *gomock.Controller) requiredInterfaces.UserManager {
+				UserManager: func(c *gomock.Controller) required_interfaces.UserManager {
 					um := mocks.NewMockUserManager(c)
 					um.EXPECT().AuthUser(gomock.Any(), gomock.AssignableToTypeOf(entities.User{})).DoAndReturn(func(_ context.Context, u entities.User) (int, error) {
 						assert.Equal(t, "qwerty@example.ru", u.Login)
@@ -52,7 +52,7 @@ func Test_handlerHTTP_LogIn(t *testing.T) {
 					})
 					return um
 				},
-				JWTHelper: func(c *gomock.Controller) requiredInterfaces.JWTHelper {
+				JWTHelper: func(c *gomock.Controller) required_interfaces.JWTHelper {
 					jh := mocks.NewMockJWTHelper(c)
 					jh.EXPECT().BuildNewJWTString(1).Return("some.test.jwt", nil)
 					return jh
@@ -68,9 +68,9 @@ func Test_handlerHTTP_LogIn(t *testing.T) {
 		{
 			name: "user not exists",
 			fields: fields{
-				UserManager: func(c *gomock.Controller) requiredInterfaces.UserManager {
+				UserManager: func(c *gomock.Controller) required_interfaces.UserManager {
 					um := mocks.NewMockUserManager(c)
-					um.EXPECT().AuthUser(gomock.Any(), gomock.Any()).Return(0, storageerrors.NewErrNotExists())
+					um.EXPECT().AuthUser(gomock.Any(), gomock.Any()).Return(0, storage_errors.NewErrNotExists())
 					return um
 				},
 				JWTHelper: nil,
@@ -85,7 +85,7 @@ func Test_handlerHTTP_LogIn(t *testing.T) {
 		{
 			name: "some db error",
 			fields: fields{
-				UserManager: func(c *gomock.Controller) requiredInterfaces.UserManager {
+				UserManager: func(c *gomock.Controller) required_interfaces.UserManager {
 					um := mocks.NewMockUserManager(c)
 					um.EXPECT().AuthUser(gomock.Any(), gomock.Any()).Return(0, fmt.Errorf("some test db error"))
 					return um

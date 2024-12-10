@@ -1,7 +1,7 @@
 package interceptors
 
 import (
-	"GophKeeper/internal/app/requiredInterfaces"
+	"GophKeeper/internal/app/required_interfaces"
 	secureerrors "GophKeeper/pkg/secure/secureerrors"
 	"context"
 	"errors"
@@ -18,7 +18,7 @@ type UserIDKey string
 const ContextUserIDKey UserIDKey = "userID"
 const mdJWTKey = "jwt"
 
-func AuthInterceptor(logger *zap.SugaredLogger, JWTHelper requiredInterfaces.JWTHelper) grpc.StreamServerInterceptor {
+func AuthInterceptor(logger *zap.SugaredLogger, JWTHelper required_interfaces.JWTHelper) grpc.StreamServerInterceptor {
 	return func(srv interface{}, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
 		ctx := stream.Context()
 

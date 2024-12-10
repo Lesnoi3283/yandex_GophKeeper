@@ -2,8 +2,8 @@ package handlers
 
 import (
 	"GophKeeper/internal/app/HTTP/middlewares"
-	"GophKeeper/internal/app/requiredInterfaces"
-	"GophKeeper/internal/app/requiredInterfaces/mocks"
+	"GophKeeper/internal/app/required_interfaces"
+	"GophKeeper/internal/app/required_interfaces/mocks"
 	"bytes"
 	"context"
 	"fmt"
@@ -24,9 +24,9 @@ func Test_handlerHTTP_PasswordGet(t *testing.T) {
 	sugar := logger.Sugar()
 
 	type fields struct {
-		Storage   func(c *gomock.Controller) requiredInterfaces.Storage
-		KeyKeeper func(c *gomock.Controller) requiredInterfaces.KeyKeeper
-		Encryptor func(c *gomock.Controller) requiredInterfaces.Encryptor
+		Storage   func(c *gomock.Controller) required_interfaces.Storage
+		KeyKeeper func(c *gomock.Controller) required_interfaces.KeyKeeper
+		Encryptor func(c *gomock.Controller) required_interfaces.Encryptor
 	}
 	type args struct {
 		w   *httptest.ResponseRecorder
@@ -42,17 +42,17 @@ func Test_handlerHTTP_PasswordGet(t *testing.T) {
 		{
 			name: "Ok",
 			fields: fields{
-				Storage: func(c *gomock.Controller) requiredInterfaces.Storage {
+				Storage: func(c *gomock.Controller) required_interfaces.Storage {
 					st := mocks.NewMockStorage(c)
 					st.EXPECT().GetPasswordByLogin(gomock.Any(), 1, "example").Return("encryptedPassword", 100, nil)
 					return st
 				},
-				KeyKeeper: func(c *gomock.Controller) requiredInterfaces.KeyKeeper {
+				KeyKeeper: func(c *gomock.Controller) required_interfaces.KeyKeeper {
 					kk := mocks.NewMockKeyKeeper(c)
 					kk.EXPECT().GetLoginAndPasswordKey("1", "100").Return("encryptionKey", nil)
 					return kk
 				},
-				Encryptor: func(c *gomock.Controller) requiredInterfaces.Encryptor {
+				Encryptor: func(c *gomock.Controller) required_interfaces.Encryptor {
 					e := mocks.NewMockEncryptor(c)
 					e.EXPECT().DecryptAESGCM("encryptedPassword", []byte("encryptionKey")).Return([]byte("decryptedPassword"), nil)
 					return e
@@ -94,7 +94,7 @@ func Test_handlerHTTP_PasswordGet(t *testing.T) {
 		{
 			name: "Storage error",
 			fields: fields{
-				Storage: func(c *gomock.Controller) requiredInterfaces.Storage {
+				Storage: func(c *gomock.Controller) required_interfaces.Storage {
 					st := mocks.NewMockStorage(c)
 					st.EXPECT().GetPasswordByLogin(gomock.Any(), 1, "example").Return("", 0, fmt.Errorf("some storage error"))
 					return st
@@ -115,12 +115,12 @@ func Test_handlerHTTP_PasswordGet(t *testing.T) {
 		{
 			name: "Key keeper error",
 			fields: fields{
-				Storage: func(c *gomock.Controller) requiredInterfaces.Storage {
+				Storage: func(c *gomock.Controller) required_interfaces.Storage {
 					st := mocks.NewMockStorage(c)
 					st.EXPECT().GetPasswordByLogin(gomock.Any(), 1, "example").Return("encryptedPassword", 100, nil)
 					return st
 				},
-				KeyKeeper: func(c *gomock.Controller) requiredInterfaces.KeyKeeper {
+				KeyKeeper: func(c *gomock.Controller) required_interfaces.KeyKeeper {
 					kk := mocks.NewMockKeyKeeper(c)
 					kk.EXPECT().GetLoginAndPasswordKey("1", "100").Return("", fmt.Errorf("key keeper error"))
 					return kk
@@ -140,17 +140,17 @@ func Test_handlerHTTP_PasswordGet(t *testing.T) {
 		{
 			name: "Decryption error",
 			fields: fields{
-				Storage: func(c *gomock.Controller) requiredInterfaces.Storage {
+				Storage: func(c *gomock.Controller) required_interfaces.Storage {
 					st := mocks.NewMockStorage(c)
 					st.EXPECT().GetPasswordByLogin(gomock.Any(), 1, "example").Return("encryptedPassword", 100, nil)
 					return st
 				},
-				KeyKeeper: func(c *gomock.Controller) requiredInterfaces.KeyKeeper {
+				KeyKeeper: func(c *gomock.Controller) required_interfaces.KeyKeeper {
 					kk := mocks.NewMockKeyKeeper(c)
 					kk.EXPECT().GetLoginAndPasswordKey("1", "100").Return("encryptionKey", nil)
 					return kk
 				},
-				Encryptor: func(c *gomock.Controller) requiredInterfaces.Encryptor {
+				Encryptor: func(c *gomock.Controller) required_interfaces.Encryptor {
 					e := mocks.NewMockEncryptor(c)
 					e.EXPECT().DecryptAESGCM(gomock.Any(), gomock.Any()).Return(nil, fmt.Errorf("some test error"))
 					return e

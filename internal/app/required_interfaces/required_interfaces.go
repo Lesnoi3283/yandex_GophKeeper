@@ -1,4 +1,4 @@
-package requiredInterfaces
+package required_interfaces
 
 import (
 	"GophKeeper/internal/app/entities"

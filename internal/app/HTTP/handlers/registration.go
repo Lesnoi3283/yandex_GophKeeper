@@ -3,7 +3,7 @@ package handlers
 import (
 	"GophKeeper/internal/app/HTTP/middlewares"
 	"GophKeeper/internal/app/entities"
-	"GophKeeper/pkg/storages/storageerrors"
+	"GophKeeper/pkg/storages/storage_errors"
 	"encoding/json"
 	"errors"
 	"io"
@@ -36,7 +36,7 @@ func (h *handlerHTTP) RegisterUser(w http.ResponseWriter, req *http.Request) {
 
 	//CreateUser new user
 	user.ID, err = h.UserManager.CreateUser(req.Context(), user)
-	if errors.Is(err, storageerrors.NewErrAlreadyExists()) {
+	if errors.Is(err, storage_errors.NewErrAlreadyExists()) {
 		h.Logger.Debugf("user already exists")
 		w.WriteHeader(http.StatusConflict)
 		return

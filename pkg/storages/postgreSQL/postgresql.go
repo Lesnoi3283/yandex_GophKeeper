@@ -8,9 +8,7 @@ import (
 	"fmt"
 
 	"GophKeeper/internal/app/entities"
-	"GophKeeper/pkg/storages/storageerrors"
-
-	_ "github.com/jackc/pgx/v5/stdlib"
+	"GophKeeper/pkg/storages/storage_errors"
 )
 
 // PostgresDB implements the Storage interface using postgreSQL.
@@ -19,19 +17,20 @@ type PostgresDB struct {
 }
 
 // NewPostgresDB initializes a new PostgresDB instance and creates tables if they do not exist.
-func NewPostgresDB(connString string) (*PostgresDB, error) {
-	db, err := sql.Open("pgx", connString)
+func NewPostgresDB(sqlDb *sql.DB) *PostgresDB {
+	postgresDB := &PostgresDB{
+		db: sqlDb,
+	}
+	return postgresDB
+}
+
+func (p *PostgresDB) OpenConnection(connString string) error {
+	var err error
+	p.db, err = sql.Open("pgx", connString)
 	if err != nil {
-		return nil, fmt.Errorf("cant to connect to database: %w", err)
+		return fmt.Errorf("cant to connect to database: %w", err)
 	}
-
-	postgresDB := &PostgresDB{db: db}
-
-	if err := postgresDB.initTables(); err != nil {
-		return nil, fmt.Errorf("init tables err: %w", err)
-	}
-
-	return postgresDB, nil
+	return nil
 }
 
 // initTables creates the necessary tables if they do not already exist.
@@ -136,7 +135,7 @@ func (p *PostgresDB) GetText(ctx context.Context, ownerID int, textName string) 
 	query := `SELECT id, text_data FROM texts WHERE owner_id=$1 AND text_name=$2`
 	err := p.db.QueryRowContext(ctx, query, ownerID, textName).Scan(&dataID, &textData)
 	if errors.Is(err, sql.ErrNoRows) {
-		return "", 0, storageerrors.NewErrNotExists()
+		return "", 0, storage_errors.NewErrNotExists()
 	}
 	if err != nil {
 		return "", 0, fmt.Errorf("cant get text by text, err: %w", err)
@@ -167,7 +166,7 @@ func (p *PostgresDB) AuthUser(ctx context.Context, user entities.User) (int, err
 	var salt string
 	err := p.db.QueryRowContext(ctx, query, user.Login).Scan(&salt)
 	if errors.Is(err, sql.ErrNoRows) {
-		return 0, storageerrors.NewErrNotExists()
+		return 0, storage_errors.NewErrNotExists()
 	}
 
 	passwordHash, err := secure.HashPasswordWithSalt([]byte(user.Password), salt)
@@ -179,7 +178,7 @@ func (p *PostgresDB) AuthUser(ctx context.Context, user entities.User) (int, err
 	query = `SELECT id FROM users WHERE login=$1 AND password=$2`
 	err = p.db.QueryRowContext(ctx, query, user.Login, passwordHash).Scan(&id)
 	if errors.Is(err, sql.ErrNoRows) {
-		return 0, storageerrors.NewErrNotExists()
+		return 0, storage_errors.NewErrNotExists()
 	} else if err != nil {
 		return 0, fmt.Errorf("cant get user by login, err: %w", err)
 	}

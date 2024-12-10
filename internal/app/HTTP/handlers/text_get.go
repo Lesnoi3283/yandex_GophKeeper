@@ -3,7 +3,7 @@ package handlers
 import (
 	"GophKeeper/internal/app/HTTP/middlewares"
 	"GophKeeper/pkg/easylog"
-	"GophKeeper/pkg/storages/storageerrors"
+	"GophKeeper/pkg/storages/storage_errors"
 	"errors"
 	"io"
 	"net/http"
@@ -36,7 +36,7 @@ func (h *handlerHTTP) GetText(w http.ResponseWriter, r *http.Request) {
 
 	//get encrypted text
 	encryptedText, dataID, err := h.Storage.GetText(r.Context(), userIDInt, textNameStr)
-	if errors.Is(err, storageerrors.NewErrNotExists()) {
+	if errors.Is(err, storage_errors.NewErrNotExists()) {
 		h.Logger.Debugf("text not found, err: %v", err)
 		w.WriteHeader(http.StatusNotFound)
 		return

@@ -3,7 +3,7 @@ package handlers
 import (
 	"GophKeeper/internal/app/HTTP/middlewares"
 	"GophKeeper/internal/app/entities"
-	"GophKeeper/internal/app/requiredInterfaces"
+	"GophKeeper/internal/app/required_interfaces"
 	"GophKeeper/pkg/easylog"
 	"bytes"
 	"encoding/gob"
@@ -84,7 +84,7 @@ func (h *handlerHTTP) BankCardGet(w http.ResponseWriter, r *http.Request) {
 	w.Write(bankCardJSON)
 }
 
-func decryptCard(encryptedCardData string, userID int, dataID int, keyKeeper requiredInterfaces.KeyKeeper, encryptor requiredInterfaces.Encryptor) ([]byte, error) {
+func decryptCard(encryptedCardData string, userID int, dataID int, keyKeeper required_interfaces.KeyKeeper, encryptor required_interfaces.Encryptor) ([]byte, error) {
 	//read encryption key
 	key, err := keyKeeper.GetBankCardKey(strconv.Itoa(userID), strconv.Itoa(dataID))
 	if err != nil {

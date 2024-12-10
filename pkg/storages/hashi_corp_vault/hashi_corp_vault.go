@@ -1,4 +1,4 @@
-package hashiCorpVault
+package hashi_corp_vault
 
 import (
 	"encoding/base64"

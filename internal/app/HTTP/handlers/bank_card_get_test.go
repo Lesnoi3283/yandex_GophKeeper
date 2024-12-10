@@ -3,8 +3,8 @@ package handlers
 import (
 	"GophKeeper/internal/app/HTTP/middlewares"
 	"GophKeeper/internal/app/entities"
-	"GophKeeper/internal/app/requiredInterfaces"
-	"GophKeeper/internal/app/requiredInterfaces/mocks"
+	"GophKeeper/internal/app/required_interfaces"
+	"GophKeeper/internal/app/required_interfaces/mocks"
 	"bytes"
 	"context"
 	"encoding/gob"
@@ -27,9 +27,9 @@ func Test_handlerHTTP_BankCardGet(t *testing.T) {
 	sugar := logger.Sugar()
 
 	type fields struct {
-		Storage   func(c *gomock.Controller) requiredInterfaces.Storage
-		KeyKeeper func(c *gomock.Controller) requiredInterfaces.KeyKeeper
-		Encryptor func(c *gomock.Controller) requiredInterfaces.Encryptor
+		Storage   func(c *gomock.Controller) required_interfaces.Storage
+		KeyKeeper func(c *gomock.Controller) required_interfaces.KeyKeeper
+		Encryptor func(c *gomock.Controller) required_interfaces.Encryptor
 	}
 	type args struct {
 		w   *httptest.ResponseRecorder
@@ -45,17 +45,17 @@ func Test_handlerHTTP_BankCardGet(t *testing.T) {
 		{
 			name: "Ok",
 			fields: fields{
-				Storage: func(c *gomock.Controller) requiredInterfaces.Storage {
+				Storage: func(c *gomock.Controller) required_interfaces.Storage {
 					st := mocks.NewMockStorage(c)
 					st.EXPECT().GetBankCard(gomock.Any(), 1, 1234).Return("encryptedCardData", 100, nil)
 					return st
 				},
-				KeyKeeper: func(c *gomock.Controller) requiredInterfaces.KeyKeeper {
+				KeyKeeper: func(c *gomock.Controller) required_interfaces.KeyKeeper {
 					kk := mocks.NewMockKeyKeeper(c)
 					kk.EXPECT().GetBankCardKey("1", "100").Return("encryptionKey", nil)
 					return kk
 				},
-				Encryptor: func(c *gomock.Controller) requiredInterfaces.Encryptor {
+				Encryptor: func(c *gomock.Controller) required_interfaces.Encryptor {
 					en := mocks.NewMockEncryptor(c)
 					buf := bytes.NewBuffer(nil)
 					encoder := gob.NewEncoder(buf)
@@ -106,7 +106,7 @@ func Test_handlerHTTP_BankCardGet(t *testing.T) {
 		{
 			name: "Storage error",
 			fields: fields{
-				Storage: func(c *gomock.Controller) requiredInterfaces.Storage {
+				Storage: func(c *gomock.Controller) required_interfaces.Storage {
 					st := mocks.NewMockStorage(c)
 					st.EXPECT().GetBankCard(gomock.Any(), 1, 1234).Return("", 0, fmt.Errorf("storage error"))
 					return st
@@ -126,12 +126,12 @@ func Test_handlerHTTP_BankCardGet(t *testing.T) {
 		{
 			name: "Key keeper error",
 			fields: fields{
-				Storage: func(c *gomock.Controller) requiredInterfaces.Storage {
+				Storage: func(c *gomock.Controller) required_interfaces.Storage {
 					st := mocks.NewMockStorage(c)
 					st.EXPECT().GetBankCard(gomock.Any(), 1, 1234).Return("encryptedCardData", 100, nil)
 					return st
 				},
-				KeyKeeper: func(c *gomock.Controller) requiredInterfaces.KeyKeeper {
+				KeyKeeper: func(c *gomock.Controller) required_interfaces.KeyKeeper {
 					kk := mocks.NewMockKeyKeeper(c)
 					kk.EXPECT().GetBankCardKey("1", "100").Return("", fmt.Errorf("key keeper error"))
 					return kk
@@ -151,17 +151,17 @@ func Test_handlerHTTP_BankCardGet(t *testing.T) {
 		{
 			name: "Decryption error",
 			fields: fields{
-				Storage: func(c *gomock.Controller) requiredInterfaces.Storage {
+				Storage: func(c *gomock.Controller) required_interfaces.Storage {
 					st := mocks.NewMockStorage(c)
 					st.EXPECT().GetBankCard(gomock.Any(), 1, 1234).Return("encryptedCardData", 100, nil)
 					return st
 				},
-				KeyKeeper: func(c *gomock.Controller) requiredInterfaces.KeyKeeper {
+				KeyKeeper: func(c *gomock.Controller) required_interfaces.KeyKeeper {
 					kk := mocks.NewMockKeyKeeper(c)
 					kk.EXPECT().GetBankCardKey("1", "100").Return("encryptionKey", nil)
 					return kk
 				},
-				Encryptor: func(c *gomock.Controller) requiredInterfaces.Encryptor {
+				Encryptor: func(c *gomock.Controller) required_interfaces.Encryptor {
 					en := mocks.NewMockEncryptor(c)
 					en.EXPECT().DecryptAESGCM("encryptedCardData", []byte("encryptionKey")).Return(nil, fmt.Errorf("decryption error"))
 					return en

@@ -3,24 +3,24 @@ package handlers
 import (
 	"GophKeeper/config"
 	"GophKeeper/internal/app/HTTP/middlewares"
-	"GophKeeper/internal/app/requiredInterfaces"
+	"GophKeeper/internal/app/required_interfaces"
 	"github.com/go-chi/chi"
 	"go.uber.org/zap"
 )
 
 type handlerHTTP struct {
 	Logger      *zap.SugaredLogger
-	Storage     requiredInterfaces.Storage
-	UserManager requiredInterfaces.UserManager
-	JWTHelper   requiredInterfaces.JWTHelper
-	KeyKeeper   requiredInterfaces.KeyKeeper
-	Encryptor   requiredInterfaces.Encryptor
+	Storage     required_interfaces.Storage
+	UserManager required_interfaces.UserManager
+	JWTHelper   required_interfaces.JWTHelper
+	KeyKeeper   required_interfaces.KeyKeeper
+	Encryptor   required_interfaces.Encryptor
 	Conf        config.Config
 }
 
-func NewChiRouter(logger *zap.SugaredLogger, um requiredInterfaces.UserManager,
-	jh requiredInterfaces.JWTHelper, storage requiredInterfaces.Storage,
-	keeper requiredInterfaces.KeyKeeper, encryptor requiredInterfaces.Encryptor,
+func NewChiRouter(logger *zap.SugaredLogger, um required_interfaces.UserManager,
+	jh required_interfaces.JWTHelper, storage required_interfaces.Storage,
+	keeper required_interfaces.KeyKeeper, encryptor required_interfaces.Encryptor,
 	conf config.Config) chi.Router {
 
 	//create handler

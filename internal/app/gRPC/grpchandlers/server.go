@@ -2,24 +2,24 @@ package grpchandlers
 
 import (
 	"GophKeeper/internal/app/gRPC/proto"
-	"GophKeeper/internal/app/requiredInterfaces"
+	"GophKeeper/internal/app/required_interfaces"
 	"go.uber.org/zap"
 )
 
 type GophKeeperServer struct {
 	proto.UnimplementedGophKeeperServiceServer
 
-	storage            requiredInterfaces.Storage
-	keyKeeper          requiredInterfaces.KeyKeeper
+	storage            required_interfaces.Storage
+	keyKeeper          required_interfaces.KeyKeeper
 	logger             *zap.SugaredLogger
-	encryptionRWFabric requiredInterfaces.EncryptionWriterReaderFabric
+	encryptionRWFabric required_interfaces.EncryptionWriterReaderFabric
 	// maxBinDataChunkSize - in bytes.
 	maxBinDataChunkSize int
 }
 
 func NewGophKeeperServer(
-	storage requiredInterfaces.Storage, keeper requiredInterfaces.KeyKeeper,
-	logger *zap.SugaredLogger, encryptionRWFabric requiredInterfaces.EncryptionWriterReaderFabric,
+	storage required_interfaces.Storage, keeper required_interfaces.KeyKeeper,
+	logger *zap.SugaredLogger, encryptionRWFabric required_interfaces.EncryptionWriterReaderFabric,
 	maxBinDataChunkSize int) *GophKeeperServer {
 	return &GophKeeperServer{
 		storage:             storage,

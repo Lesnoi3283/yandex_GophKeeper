@@ -1,7 +1,7 @@
 package secure
 
 import (
-	"GophKeeper/internal/app/requiredInterfaces"
+	"GophKeeper/internal/app/required_interfaces"
 	"fmt"
 	"io"
 )
@@ -10,7 +10,7 @@ import (
 type encryptionFileFabric struct{}
 
 // NewEncryptionFileFabric creates new fabric,
-func NewEncryptionFileFabric() requiredInterfaces.EncryptionWriterReaderFabric {
+func NewEncryptionFileFabric() required_interfaces.EncryptionWriterReaderFabric {
 	return &encryptionFileFabric{}
 }
 

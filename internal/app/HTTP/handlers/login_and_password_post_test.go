@@ -2,8 +2,8 @@ package handlers
 
 import (
 	"GophKeeper/internal/app/HTTP/middlewares"
-	"GophKeeper/internal/app/requiredInterfaces"
-	"GophKeeper/internal/app/requiredInterfaces/mocks"
+	"GophKeeper/internal/app/required_interfaces"
+	"GophKeeper/internal/app/required_interfaces/mocks"
 	"bytes"
 	"context"
 	"fmt"
@@ -24,9 +24,9 @@ func Test_handlerHTTP_LoginAndPasswordSave(t *testing.T) {
 	sugar := logger.Sugar()
 
 	type fields struct {
-		Storage   func(c *gomock.Controller) requiredInterfaces.Storage
-		KeyKeeper func(c *gomock.Controller) requiredInterfaces.KeyKeeper
-		Encryptor func(c *gomock.Controller) requiredInterfaces.Encryptor
+		Storage   func(c *gomock.Controller) required_interfaces.Storage
+		KeyKeeper func(c *gomock.Controller) required_interfaces.KeyKeeper
+		Encryptor func(c *gomock.Controller) required_interfaces.Encryptor
 	}
 	type args struct {
 		w   *httptest.ResponseRecorder
@@ -42,17 +42,17 @@ func Test_handlerHTTP_LoginAndPasswordSave(t *testing.T) {
 		{
 			name: "Ok",
 			fields: fields{
-				Storage: func(c *gomock.Controller) requiredInterfaces.Storage {
+				Storage: func(c *gomock.Controller) required_interfaces.Storage {
 					st := mocks.NewMockStorage(c)
 					st.EXPECT().SaveLoginAndPassword(gomock.Any(), 1, "example", "encryptedPassword").Return(100, nil)
 					return st
 				},
-				KeyKeeper: func(c *gomock.Controller) requiredInterfaces.KeyKeeper {
+				KeyKeeper: func(c *gomock.Controller) required_interfaces.KeyKeeper {
 					kk := mocks.NewMockKeyKeeper(c)
 					kk.EXPECT().SetLoginAndPasswordKey("1", "100", gomock.Any()).Return(nil)
 					return kk
 				},
-				Encryptor: func(c *gomock.Controller) requiredInterfaces.Encryptor {
+				Encryptor: func(c *gomock.Controller) required_interfaces.Encryptor {
 					e := mocks.NewMockEncryptor(c)
 					e.EXPECT().EncryptAESGCM([]byte("12345"), gomock.Any()).Return("encryptedPassword", nil)
 					return e
@@ -133,7 +133,7 @@ func Test_handlerHTTP_LoginAndPasswordSave(t *testing.T) {
 		{
 			name: "Encryptor error",
 			fields: fields{
-				Encryptor: func(c *gomock.Controller) requiredInterfaces.Encryptor {
+				Encryptor: func(c *gomock.Controller) required_interfaces.Encryptor {
 					e := mocks.NewMockEncryptor(c)
 					e.EXPECT().EncryptAESGCM(gomock.Any(), gomock.Any()).Return("", fmt.Errorf("some test error"))
 					return e
@@ -153,13 +153,13 @@ func Test_handlerHTTP_LoginAndPasswordSave(t *testing.T) {
 		{
 			name: "Storage error",
 			fields: fields{
-				Storage: func(c *gomock.Controller) requiredInterfaces.Storage {
+				Storage: func(c *gomock.Controller) required_interfaces.Storage {
 					st := mocks.NewMockStorage(c)
 					st.EXPECT().SaveLoginAndPassword(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(0, fmt.Errorf("some test storage error"))
 					return st
 				},
 				KeyKeeper: nil,
-				Encryptor: func(c *gomock.Controller) requiredInterfaces.Encryptor {
+				Encryptor: func(c *gomock.Controller) required_interfaces.Encryptor {
 					e := mocks.NewMockEncryptor(c)
 					e.EXPECT().EncryptAESGCM(gomock.Any(), gomock.Any()).Return("encryptedPassword", nil)
 					return e
@@ -179,17 +179,17 @@ func Test_handlerHTTP_LoginAndPasswordSave(t *testing.T) {
 		{
 			name: "Key keeper error",
 			fields: fields{
-				Storage: func(c *gomock.Controller) requiredInterfaces.Storage {
+				Storage: func(c *gomock.Controller) required_interfaces.Storage {
 					st := mocks.NewMockStorage(c)
 					st.EXPECT().SaveLoginAndPassword(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(100, nil)
 					return st
 				},
-				KeyKeeper: func(c *gomock.Controller) requiredInterfaces.KeyKeeper {
+				KeyKeeper: func(c *gomock.Controller) required_interfaces.KeyKeeper {
 					kk := mocks.NewMockKeyKeeper(c)
 					kk.EXPECT().SetLoginAndPasswordKey(gomock.Any(), gomock.Any(), gomock.Any()).Return(fmt.Errorf("some keykeeper error"))
 					return kk
 				},
-				Encryptor: func(c *gomock.Controller) requiredInterfaces.Encryptor {
+				Encryptor: func(c *gomock.Controller) required_interfaces.Encryptor {
 					e := mocks.NewMockEncryptor(c)
 					e.EXPECT().EncryptAESGCM(gomock.Any(), gomock.Any()).Return("encryptedPassword", nil)
 					return e

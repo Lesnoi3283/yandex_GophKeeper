@@ -1,4 +1,4 @@
-package storageerrors
+package storage_errors
 
 import "errors"
 

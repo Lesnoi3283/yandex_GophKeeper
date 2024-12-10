@@ -7,10 +7,12 @@ import (
 	"GophKeeper/internal/app/gRPC/interceptors"
 	"GophKeeper/internal/app/gRPC/proto"
 	"GophKeeper/pkg/secure"
-	"GophKeeper/pkg/storages/hashiCorpVault"
+	"GophKeeper/pkg/storages/hashi_corp_vault"
 	"GophKeeper/pkg/storages/postgreSQL"
 	"crypto/tls"
+	"database/sql"
 	"github.com/go-chi/chi"
+	_ "github.com/jackc/pgx/v5/stdlib"
 	"go.uber.org/zap"
 	"golang.org/x/crypto/acme/autocert"
 	"google.golang.org/grpc"
@@ -45,13 +47,14 @@ func main() {
 	defer sugar.Sync()
 
 	//prepare storage
-	storage, err := postgreSQL.NewPostgresDB(conf.DBConnString)
+	sqlDB, err := sql.Open("pgx", conf.DBConnString)
 	if err != nil {
 		sugar.Fatalf("cant create postgresql storage, err: %v", err)
 	}
+	storage := postgreSQL.NewPostgresDB(sqlDB)
 
 	//prepare keykeeper
-	hashiCorp, err := hashiCorpVault.NewHashiCorpVault(conf.HashiCorpAddress, conf.HashiCorpToken)
+	hashiCorp, err := hashi_corp_vault.NewHashiCorpVault(conf.HashiCorpAddress, conf.HashiCorpToken)
 	if err != nil {
 		sugar.Fatalf("cant create hashi corp vault, err: %v", err)
 	}

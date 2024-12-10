@@ -1,8 +1,8 @@
 package middlewares
 
 import (
-	"GophKeeper/internal/app/requiredInterfaces"
-	"GophKeeper/internal/app/requiredInterfaces/mocks"
+	"GophKeeper/internal/app/required_interfaces"
+	"GophKeeper/internal/app/required_interfaces/mocks"
 	"fmt"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -22,7 +22,7 @@ func Test_AuthMW(t *testing.T) {
 	defer c.Finish()
 
 	type fields struct {
-		jh requiredInterfaces.JWTHelper
+		jh required_interfaces.JWTHelper
 	}
 	type args struct {
 		w    *httptest.ResponseRecorder
@@ -38,7 +38,7 @@ func Test_AuthMW(t *testing.T) {
 		{
 			name: "ok",
 			fields: fields{
-				jh: func() requiredInterfaces.JWTHelper {
+				jh: func() required_interfaces.JWTHelper {
 					jh := mocks.NewMockJWTHelper(c)
 					jh.EXPECT().GetUserID("some.jwt.token").Return(1, nil)
 					return jh
@@ -82,7 +82,7 @@ func Test_AuthMW(t *testing.T) {
 		{
 			name: "Bad JWT",
 			fields: fields{
-				jh: func() requiredInterfaces.JWTHelper {
+				jh: func() required_interfaces.JWTHelper {
 					jh := mocks.NewMockJWTHelper(c)
 					jh.EXPECT().GetUserID("some.bad.JWTToken").Return(0, fmt.Errorf("some jwt error"))
 					return jh

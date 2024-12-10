@@ -1,7 +1,7 @@
 package middlewares
 
 import (
-	"GophKeeper/internal/app/requiredInterfaces"
+	"GophKeeper/internal/app/required_interfaces"
 	secureerrors "GophKeeper/pkg/secure/secureerrors"
 	"context"
 	"errors"
@@ -15,7 +15,7 @@ type UserIDContextKeyType string
 
 const UserIDContextKey UserIDContextKeyType = "UserID"
 
-func GetAuthMW(logger *zap.SugaredLogger, jh requiredInterfaces.JWTHelper, excludedPaths []string) func(http.Handler) http.Handler {
+func GetAuthMW(logger *zap.SugaredLogger, jh required_interfaces.JWTHelper, excludedPaths []string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if isExcluded(r.URL.Path, excludedPaths) {

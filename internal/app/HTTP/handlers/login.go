@@ -3,7 +3,7 @@ package handlers
 import (
 	"GophKeeper/internal/app/HTTP/middlewares"
 	"GophKeeper/internal/app/entities"
-	"GophKeeper/pkg/storages/storageerrors"
+	"GophKeeper/pkg/storages/storage_errors"
 	"encoding/json"
 	"errors"
 	"go.uber.org/zap"
@@ -36,7 +36,7 @@ func (h *handlerHTTP) Login(w http.ResponseWriter, r *http.Request) {
 
 	//Login
 	user.ID, err = h.UserManager.AuthUser(r.Context(), user)
-	if errors.Is(err, storageerrors.NewErrNotExists()) {
+	if errors.Is(err, storage_errors.NewErrNotExists()) {
 		h.Logger.Debugf("user not exists, err: %v", err)
 		w.WriteHeader(http.StatusUnauthorized)
 		return
