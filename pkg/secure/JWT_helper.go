@@ -4,7 +4,6 @@ import (
 	"GophKeeper/pkg/secure/secureerrors"
 	"fmt"
 	"github.com/golang-jwt/jwt/v4"
-	"sync"
 	"time"
 )
 
@@ -19,8 +18,9 @@ type JWTHelper struct {
 	Claims    Claims
 	secretKey string
 	TokenExp  time.Duration
-	m         sync.RWMutex
 }
+
+// For future updates - don`t forget to add a mutex if your new logic will try to change JWTHelper`s fields.
 
 // NewJWTHelper creates a new JWTHelper.
 func NewJWTHelper(secretKey string, tokenTimeoutHours int) *JWTHelper {
@@ -32,8 +32,6 @@ func NewJWTHelper(secretKey string, tokenTimeoutHours int) *JWTHelper {
 
 // BuildNewJWTString returns new JWT string with userID inside.
 func (j *JWTHelper) BuildNewJWTString(userID int) (string, error) {
-	j.m.Lock()
-	defer j.m.Unlock()
 
 	claims := Claims{RegisteredClaims: jwt.RegisteredClaims{
 		ExpiresAt: jwt.NewNumericDate(time.Now().Add(j.TokenExp)),
@@ -53,8 +51,6 @@ func (j *JWTHelper) BuildNewJWTString(userID int) (string, error) {
 
 // GetUserID parses JWT and returns a userID from it.
 func (j *JWTHelper) GetUserID(tokenString string) (int, error) {
-	j.m.Lock()
-	defer j.m.Unlock()
 
 	claims := &Claims{}
 	token, err := jwt.ParseWithClaims(tokenString, claims,

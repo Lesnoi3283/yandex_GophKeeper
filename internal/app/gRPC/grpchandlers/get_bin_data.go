@@ -84,6 +84,4 @@ func (s *GophKeeperServer) GetBinData(req *proto.GetBinDataRequest, stream proto
 			return status.Error(codes.Internal, "Failed to stream binary data")
 		}
 	}
-
-	return nil
 }

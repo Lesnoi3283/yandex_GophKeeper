@@ -26,6 +26,7 @@ type EncryptionWriter struct {
 // NewEncryptionWriter creates new EncryptionWriter.
 // Key have to be 256 bit len.
 // Encryption alg - "chacha20poly1305".
+// ATTENTION - it creates a file (only if it does not exist), so don`t forget to close it using EncryptionWriter.Close().
 func NewEncryptionWriter(filePath string, key []byte) (*EncryptionWriter, error) {
 	//create dir
 	dir := filepath.Dir(filePath)
@@ -34,7 +35,7 @@ func NewEncryptionWriter(filePath string, key []byte) (*EncryptionWriter, error)
 	}
 
 	//open or create file
-	file, err := os.OpenFile(filePath, os.O_CREATE|os.O_WRONLY, 0600)
+	file, err := os.OpenFile(filePath, os.O_CREATE|os.O_WRONLY|os.O_EXCL, 0600)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open file: %w", err)
 	}

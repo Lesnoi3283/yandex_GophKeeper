@@ -60,7 +60,7 @@ func main() {
 	jh := secure.NewJWTHelper(conf.JWTSecretKey, conf.JWTTimeoutHours)
 
 	//prepare encryptor
-	encryptor := secure.NewEncryptorAESGSM()
+	encryptor := secure.NewEncryptorAESGCM()
 
 	//build HTTP router
 	r := httphandlers.NewChiRouter(sugar, storage, jh, storage, hashiCorp, encryptor, conf)

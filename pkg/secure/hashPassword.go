@@ -9,9 +9,9 @@ import (
 
 // scrypt params.
 const (
-	n       = 1 << 15
-	r       = 8
-	p       = 1
+	n       = 1 << 15 // CPU/memory cost parameter (must be a power of 2). Higher values increase computational effort.
+	r       = 8       // Block size parameter. Influences memory usage and performance.
+	p       = 1       // Parallelization parameter. Increases parallel computation but also memory usage.
 	keyLen  = 32
 	saltLen = 32
 )

@@ -22,13 +22,13 @@ type PostgresDB struct {
 func NewPostgresDB(connString string) (*PostgresDB, error) {
 	db, err := sql.Open("pgx", connString)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("cant to connect to database: %w", err)
 	}
 
 	postgresDB := &PostgresDB{db: db}
 
 	if err := postgresDB.initTables(); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("init tables err: %w", err)
 	}
 
 	return postgresDB, nil
@@ -65,7 +65,7 @@ func (p *PostgresDB) initTables() error {
 
 	for _, query := range queries {
 		if _, err := p.db.Exec(query); err != nil {
-			return err
+			return fmt.Errorf("create table err: %w", err)
 		}
 	}
 
@@ -77,7 +77,10 @@ func (p *PostgresDB) SaveBankCard(ctx context.Context, ownerID int, lastFourDigi
 	var id int
 	query := `INSERT INTO bank_cards (owner_id, last_four_digits, card_data) VALUES ($1, $2, $3) RETURNING id`
 	err := p.db.QueryRowContext(ctx, query, ownerID, lastFourDigits, cardData).Scan(&id)
-	return id, err
+	if err != nil {
+		return 0, fmt.Errorf("cant insert bank card, err: %w", err)
+	}
+	return id, nil
 }
 
 // GetBankCard retrieves a bank card's data and ID based on the owner ID and last four digits.
@@ -86,7 +89,10 @@ func (p *PostgresDB) GetBankCard(ctx context.Context, ownerID int, lastFourDigit
 	var dataID int
 	query := `SELECT id, card_data FROM bank_cards WHERE owner_id=$1 AND last_four_digits=$2`
 	err := p.db.QueryRowContext(ctx, query, ownerID, lastFourDigits).Scan(&dataID, &data)
-	return data, dataID, err
+	if err != nil {
+		return "", 0, fmt.Errorf("cant select bank cards err: %w", err)
+	}
+	return data, dataID, nil
 }
 
 // SaveLoginAndPassword saves login and password credentials for a user and returns the inserted record's ID.
@@ -94,7 +100,10 @@ func (p *PostgresDB) SaveLoginAndPassword(ctx context.Context, ownerID int, logi
 	var id int
 	query := `INSERT INTO logins_and_passwords (owner_id, login, password) VALUES ($1, $2, $3) RETURNING id`
 	err := p.db.QueryRowContext(ctx, query, ownerID, login, password).Scan(&id)
-	return id, err
+	if err != nil {
+		return 0, fmt.Errorf("cant insert login and password, err: %w", err)
+	}
+	return id, nil
 }
 
 // GetPasswordByLogin retrieves the password and ID associated with a specific login for a user.
@@ -103,7 +112,10 @@ func (p *PostgresDB) GetPasswordByLogin(ctx context.Context, ownerID int, login 
 	var dataID int
 	query := `SELECT id, password FROM logins_and_passwords WHERE owner_id=$1 AND login=$2`
 	err := p.db.QueryRowContext(ctx, query, ownerID, login).Scan(&dataID, &password)
-	return password, dataID, err
+	if err != nil {
+		return "", 0, fmt.Errorf("cant get password by login, err: %w", err)
+	}
+	return password, dataID, nil
 }
 
 // SaveText saves a text entry for a user and returns the inserted record's ID.
@@ -111,7 +123,10 @@ func (p *PostgresDB) SaveText(ctx context.Context, ownerID int, textName, text s
 	var id int
 	query := `INSERT INTO texts (owner_id, text_name, text_data) VALUES ($1, $2, $3) RETURNING id`
 	err := p.db.QueryRowContext(ctx, query, ownerID, textName, text).Scan(&id)
-	return id, err
+	if err != nil {
+		return 0, fmt.Errorf("cant insert text, err: %w", err)
+	}
+	return id, nil
 }
 
 // GetText retrieves the text data and ID based on the owner ID and text name.
@@ -123,7 +138,10 @@ func (p *PostgresDB) GetText(ctx context.Context, ownerID int, textName string) 
 	if errors.Is(err, sql.ErrNoRows) {
 		return "", 0, storageerrors.NewErrNotExists()
 	}
-	return textData, dataID, err
+	if err != nil {
+		return "", 0, fmt.Errorf("cant get text by text, err: %w", err)
+	}
+	return textData, dataID, nil
 }
 
 // CreateUser creates a new user and returns the user's ID.
@@ -162,6 +180,8 @@ func (p *PostgresDB) AuthUser(ctx context.Context, user entities.User) (int, err
 	err = p.db.QueryRowContext(ctx, query, user.Login, passwordHash).Scan(&id)
 	if errors.Is(err, sql.ErrNoRows) {
 		return 0, storageerrors.NewErrNotExists()
+	} else if err != nil {
+		return 0, fmt.Errorf("cant get user by login, err: %w", err)
 	}
-	return id, err
+	return id, nil
 }

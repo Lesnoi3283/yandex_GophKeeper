@@ -15,7 +15,7 @@ import (
 // It was created to make possible to mock encryption functions.
 type EncryptorAESGCM struct{}
 
-func NewEncryptorAESGSM() *EncryptorAESGCM {
+func NewEncryptorAESGCM() *EncryptorAESGCM {
 	return &EncryptorAESGCM{}
 }
 
@@ -67,7 +67,7 @@ func (e *EncryptorAESGCM) DecryptAESGCM(ciphertext string, key []byte) ([]byte, 
 		return nil, fmt.Errorf("cat create New GCM: %w", err)
 	}
 
-	if len(ciphertext) < aesGCM.NonceSize() {
+	if len(ciphertextUnBase64) < aesGCM.NonceSize() {
 		return nil, errors.New("ciphertext is too short")
 	}
 
