@@ -47,8 +47,8 @@ func NewChiRouter(logger *zap.SugaredLogger, um requiredInterfaces.UserManager,
 	r.Get("/api/bankcard", httphandler.BankCardGet)
 	r.Post("/api/loginandpassword", httphandler.LoginAndPasswordSave)
 	r.Get("/api/loginandpassword", httphandler.PasswordGet)
-	r.Post("/api/text", httphandler.TextDataSave)
-	r.Get("/api/text", httphandler.TextDataGet)
+	r.Post("/api/text", httphandler.SaveText)
+	r.Get("/api/text", httphandler.GetText)
 
 	return r
 }

@@ -28,13 +28,8 @@ func (h *handlerHTTP) Login(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	if len(user.Password) == 0 {
-		h.Logger.Debugf("password is empty")
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-	if len(user.Login) == 0 {
-		h.Logger.Debugf("login is empty")
+	if user.ValidateUser() != nil {
+		h.Logger.Warnf("user is not valid: %v", err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}

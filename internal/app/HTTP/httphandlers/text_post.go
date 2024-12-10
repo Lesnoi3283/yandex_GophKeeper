@@ -11,7 +11,7 @@ import (
 	"strconv"
 )
 
-func (h *handlerHTTP) TextDataSave(w http.ResponseWriter, r *http.Request) {
+func (h *handlerHTTP) SaveText(w http.ResponseWriter, r *http.Request) {
 	//get userID from ctx
 	userID := r.Context().Value(middlewares.UserIDContextKey)
 	userIDInt, ok := userID.(int)

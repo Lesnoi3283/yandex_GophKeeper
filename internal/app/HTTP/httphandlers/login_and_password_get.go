@@ -8,11 +8,6 @@ import (
 	"strconv"
 )
 
-//todo: везде заменить двойное логирование на:
-//	if h.Logger.Level() != zap.DebugLevel {
-//	} else {
-//	}
-
 func (h *handlerHTTP) PasswordGet(w http.ResponseWriter, r *http.Request) {
 	//get userID from ctx
 	userID := r.Context().Value(middlewares.UserIDContextKey)

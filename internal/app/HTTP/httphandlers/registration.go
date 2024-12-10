@@ -28,16 +28,9 @@ func (h *handlerHTTP) RegisterUser(w http.ResponseWriter, req *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	if len(user.Password) <= 5 {
-		h.Logger.Debugf("password is too small")
+	if user.ValidateUser() != nil {
+		h.Logger.Warnf("user is not valid: %v", err)
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("password is too small"))
-		return
-	}
-	if len(user.Login) <= 5 {
-		h.Logger.Debugf("login is too small")
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("login is too small"))
 		return
 	}
 

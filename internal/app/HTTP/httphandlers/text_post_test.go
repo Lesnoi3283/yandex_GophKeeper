@@ -224,7 +224,7 @@ func Test_handlerHTTP_TextDataSave(t *testing.T) {
 				h.Encryptor = tt.fields.Encryptor(c)
 			}
 
-			h.TextDataSave(tt.args.w, tt.args.req)
+			h.SaveText(tt.args.w, tt.args.req)
 			assert.Equal(t, tt.expectedStatus, tt.args.w.Code)
 			assert.Equal(t, tt.expectedAnswer, tt.args.w.Body.Bytes())
 		})

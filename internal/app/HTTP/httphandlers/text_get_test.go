@@ -188,7 +188,7 @@ func Test_handlerHTTP_TextDataGet(t *testing.T) {
 				h.Encryptor = tt.fields.Encryptor(c)
 			}
 
-			h.TextDataGet(tt.args.w, tt.args.req)
+			h.GetText(tt.args.w, tt.args.req)
 			assert.Equal(t, tt.expectedStatus, tt.args.w.Code)
 			assert.Equal(t, tt.expectedAnswer, tt.args.w.Body.Bytes())
 		})
